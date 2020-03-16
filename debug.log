@@ -4,3 +4,8 @@
 [0313/152418.384:ERROR:prune_crash_reports.cc(35)] PruneCrashReportDatabase: Failed to get pending reports
 [0313/152510.387:ERROR:prune_crash_reports.cc(35)] PruneCrashReportDatabase: Failed to get pending reports
 [0313/152658.561:ERROR:prune_crash_reports.cc(35)] PruneCrashReportDatabase: Failed to get pending reports
+[0315/231040.231:ERROR:process_info.cc(359)] UncheckedAllocate
+[0315/231057.845:ERROR:process_reader_win.cc(151)] SuspendThread: Acesso negado. (0x5)
+[0315/231057.888:ERROR:process_info.cc(359)] UncheckedAllocate
+[0315/231326.464:ERROR:filesystem_win.cc(148)] DeleteFile C:\Users\NAIDIO~1.BRO\AppData\Local\Temp\scoped_dir74708_417364493\Crashpad\reports\5addb933-69d7-4b5f-9d9a-908b536bc259.dmp: O arquivo já está sendo usado por outro processo. (0x20)
+[0315/231737.694:ERROR:process_info.cc(359)] UncheckedAllocate

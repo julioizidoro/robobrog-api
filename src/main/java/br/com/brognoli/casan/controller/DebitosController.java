@@ -47,4 +47,17 @@ public class DebitosController {
 		}
 		
 	}
+	
+	@GetMapping("/gerarresultado")
+	@ResponseStatus(HttpStatus.CREATED)
+	public void getExcelResultados() throws Exception {
+		LerSite siteCasan = new LerSite();
+		try {
+			siteCasan.exportarExcelResultado(listaImoveis);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
 }

@@ -1,7 +1,6 @@
 package br.com.brognoli.casan.bean;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,7 +29,6 @@ import com.gargoylesoftware.htmlunit.CookieManager;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlButton;
-import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlInput;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
@@ -49,25 +47,39 @@ public class LerSite {
 	private int linhaGeral = 0;
 	
 	public List<Imovelcasan> getBoletos(List<Imovelcasan> lista) {
+		boolean fechouDriver =true;
 	    int linha=linhaGeral;
 	   // inicar();
 	    //iniciarWebClinet();
 	    for (int i=linha;i<lista.size();i++) {
 	    	try {
-	    		inicar();
-	    		Thread.sleep(1000);
-				if (logar(lista.get(i))) {
-					lista.set(i,verificarSituacao(lista.get(i)));
-					logof();
+	    			if (fechouDriver) {
+	    				inicar();
+	    				fechouDriver = false;
+	    				Thread.sleep(1000);
+	    			}
+	    			String resultado = validarDadosLogin(lista.get(i));
+	    			if (resultado.equals("OK")) {
+	    				if (logar(lista.get(i))) {
+	    					lista.get(i).setSituacao(resultado);
+	    					fechouDriver = true;
+		    				lista.set(i,verificarSituacao(lista.get(i)));
+		    				logof();
+		    				System.out.println(i);
+	    				} else {
+	    					fechouDriver = true;
+	    					lista.get(i).setSituacao("ERRO AO LOGAR E-CASAN");
+	    				}
+	    			} else {
+	    				lista.get(i).setSituacao(resultado);
 					
-				
-					
-					} else {
-						lista.get(i).setSituacao("Erro ao logar");
-						
-					}
-					linhaGeral = i;
-					driver.close();
+	    			}
+	    			linhaGeral = i;
+	    			if (fechouDriver) {
+	    				fechouDriver = true;
+	    				driver.close();
+	    			}
+	    			
 	    		} catch (Exception e) {
 	    			System.out.println(e.getMessage());
 	    			lista.get(linha).setSituacao("Ocorreu erro " + e.getMessage());
@@ -125,30 +137,21 @@ public class LerSite {
 
 	}
 	
+	public String validarDadosLogin(Imovelcasan imovel) throws InterruptedException {
+		String resultado = "";
+	    resultado = validarMatricula(imovel.getMatricula());
+		if (imovel.getCpfcasan()==null) {
+			resultado = resultado + " / CPF INVÁLIDO" ;
+		}
+		return resultado;
+	}
+	
 	public boolean logar(Imovelcasan imovel) throws InterruptedException {
-		String cpf;
-		String matricula;
-		if (imovel.getMatricula()==null) {
-			return false;
-		} else {
-			matricula = imovel.getMatricula();
-		}
-		if (imovel.getCpfcasan()!=null) {
-			cpf = imovel.getCpfcasan();
-		}else if (imovel.getCpflocatario()!=null) {
-			cpf = imovel.getCpflocatario();
-		}else {
-			return false;
-		}
-		
-		
-		
-		
 		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
 		WebElement inputCPF = driver.findElement(By.id("j_username"));
-		inputCPF.sendKeys(cpf);
+		inputCPF.sendKeys(imovel.getCpfcasan());
 		WebElement inputMatricula = driver.findElement(By.id("j_password"));
-		inputMatricula.sendKeys(matricula);
+		inputMatricula.sendKeys(imovel.getMatricula());
 		WebElement botaoLogin = driver.findElement(By.xpath("/html/body/div[3]/div/form/div/button"));
 		botaoLogin.click();
 		Thread.sleep(1000);
@@ -244,7 +247,7 @@ public class LerSite {
 		
 		
 		
-		String filename = getNomePDF(url, imovel.getMatricula());
+		String filename = getNomePDF(url, String.valueOf(imovel.getCodigoimovel()));
 		File file = new File(filename);
 		InputStream is;
 		
@@ -262,7 +265,7 @@ public class LerSite {
 		
 	}
 	
-	public String getNomePDF(String url, String matricula) {
+	public String getNomePDF(String url, String codigoImovel) {
 		String filename= "";
 		for (int i=url.length()-3;i>0;i--) {
 			if (url.charAt(i)!='/') {
@@ -271,7 +274,7 @@ public class LerSite {
 				i = -1;
 			}
 		}
-		filename = "c:\\logs\\casan\\" + matricula + "_" + filename + ".pdf";
+		filename = "c:\\logs\\casan\\" + codigoImovel + "_" + filename + ".pdf";
 		return filename;
 	}
 	
@@ -280,7 +283,8 @@ public class LerSite {
         List<Imovelcasan> novaListaImoveis = new ArrayList<Imovelcasan>();
 		for (int i=0;i<listaImoveis.size();i++) {
 			List<Fatura> novaListaFatura = new ArrayList<Fatura>();
-        	for (int n=0; n<listaImoveis.get(i).getListaFatura().size();n++) {
+			if (listaImoveis.get(i).getListaFatura()!=null) {
+			for (int n=0; n<listaImoveis.get(i).getListaFatura().size();n++) {
         		if (listaImoveis.get(i).getListaFatura().get(n).getArquivo() !=null) {
         			File file = new File(listaImoveis.get(i).getListaFatura().get(n).getArquivo());
             		if (file!=null) {
@@ -294,7 +298,9 @@ public class LerSite {
         		}
         		//File file = new File("c:\\logs\\casan\\08510873_01-01-2020-1.pdf");
         	}
-        	listaImoveis.get(i).setListaFatura(novaListaFatura);
+        	
+			}
+			listaImoveis.get(i).setListaFatura(novaListaFatura);
         	novaListaImoveis.add(listaImoveis.get(i));
         }
         exportarExcel(listaImoveis);
@@ -342,7 +348,7 @@ public class LerSite {
 	public void exportarExcel(List<Imovelcasan> listaImoveis) throws Exception {
 		HSSFWorkbook workbook = new HSSFWorkbook();
 		HSSFSheet firstSheet = workbook.createSheet("Debitos Casan");
-		FileOutputStream fos = new FileOutputStream(new File("c:\\logs\\casan\\casan.xls"));
+		FileOutputStream fos = new FileOutputStream(new File("c:\\logs\\casan\\debitoscasan.xls"));
 		try {
 			
 			int linha = 0;
@@ -420,6 +426,74 @@ public class LerSite {
 			}
 		}
 		return "";
+	}
+	
+	public String validarMatricula(String matricula) {
+		
+		 if (matricula==null) {
+			 return "MATRÚCLA INVÁLIDA LINLK";
+		 } else if (matricula.equalsIgnoreCase("COND")) {
+			return "MATRÚCLA INVÁLIDA LINLK";
+		} else if (matricula.equalsIgnoreCase("KITNET") ) {
+			return "MATRÚCLA INVÁLIDA LINLK";
+		} else if (matricula.equalsIgnoreCase("X")) {
+			return "MATRÚCLA INVÁLIDA LINLK";
+		} else if (matricula.equalsIgnoreCase("CONDOMINIO")) {
+			return "MATRÚCLA INVÁLIDA LINLK";
+		} else if (matricula.equalsIgnoreCase("COND.")) {
+			return "MATRÚCLA INVÁLIDA LINLK";
+		} else if (matricula.equalsIgnoreCase("APARTAMENTO")) {
+			return "MATRÚCLA INVÁLIDA LINLK";
+		} else if (matricula.equalsIgnoreCase("RATEIO")) {
+			return "MATRÚCLA INVÁLIDA LINLK";
+		} else if (matricula.length()<=4) {
+			return "MATRÚCLA INVÁLIDA LINLK";
+		}
+		return "OK";
+	}
+	
+	
+	public void exportarExcelResultado(List<Imovelcasan> listaImoveis) throws Exception {
+		HSSFWorkbook workbook = new HSSFWorkbook();
+		HSSFSheet firstSheet = workbook.createSheet("Debitos Casan");
+		FileOutputStream fos = new FileOutputStream(new File("c:\\logs\\casan\\resultadocasan.xls"));
+		try {
+			
+			int linha = 0;
+			HSSFRow row = firstSheet.createRow(linha);
+			row.createCell(0).setCellValue("Código Imóvel");
+			row.createCell(1).setCellValue("Matrícula");
+            row.createCell(2).setCellValue("Proprietário");
+            row.createCell(3).setCellValue("CPF Casan");
+            row.createCell(4).setCellValue("Locatário");
+            row.createCell(5).setCellValue("Situação");
+            
+			
+			linha++;
+			
+			for (int i=0;i<listaImoveis.size();i++) {
+	        		row = firstSheet.createRow(linha);
+	        		row.createCell(0).setCellValue(listaImoveis.get(i).getCodigoimovel());
+	    			row.createCell(1).setCellValue(listaImoveis.get(i).getMatricula());
+	                row.createCell(2).setCellValue(listaImoveis.get(i).getNomeproprietario());
+	                row.createCell(3).setCellValue(listaImoveis.get(i).getCpfcasan());
+	                row.createCell(4).setCellValue(listaImoveis.get(i).getLocatario());
+	                row.createCell(5).setCellValue(listaImoveis.get(i).getSituacao());
+	                linha++;
+	        	
+	        }
+			workbook.write(fos);
+
+		}catch (Exception e) {
+			System.out.println(e);
+		}
+		
+		try {
+			fos.flush();
+			fos.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	
