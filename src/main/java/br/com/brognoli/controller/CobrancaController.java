@@ -53,6 +53,11 @@ import com.google.gson.reflect.TypeToken;
 
 import br.com.brognoli.bean.AdmModelos;
 import br.com.brognoli.bean.ExportarExcel;
+import br.com.brognoli.bean.ModeloAdelante;
+import br.com.brognoli.bean.ModeloGrupoEmbracon;
+import br.com.brognoli.bean.ModeloGrupoEmbraconAposVencimento;
+import br.com.brognoli.bean.ModeloGrupoEmbraconCodigoBarras;
+import br.com.brognoli.bean.ModeloNovara;
 import br.com.brognoli.bean.ModeloResumoRateio;
 import br.com.brognoli.bean.ModeloResumoRateioPonto;
 import br.com.brognoli.bean.ModeloResumoRateioUmaColuna;
@@ -239,7 +244,8 @@ public class CobrancaController {
 	@ResponseStatus(HttpStatus.CREATED)
 	public String exportarExcel() {
 		int importados = 0;
-		List<Cobranca> listaCobranca = cobrancaRepository.findAll();
+		//List<Cobranca> listaCobranca = cobrancaRepository.findAll();
+		List<Cobranca> listaCobranca = cobrancaRepository.listarCobranca("Grupo Embracon", "ALBATROZ");
 		if (listaCobranca != null) {
 		List<Boletos> listaBoletos = new ArrayList<Boletos>();
 		for (Cobranca cobranca : listaCobranca) {
@@ -297,7 +303,73 @@ public class CobrancaController {
 					boleto.setLinhaDigitavel(modeloResumoRateioPontoUmaColuna.getLinhaDigitavel());
 					boleto.setEndereco(modeloResumoRateioPontoUmaColuna.getEndereco());
 					boleto.setNumero(modeloResumoRateioPontoUmaColuna.getNumero());
-				} 
+				} else if (modelo.getModelo().equalsIgnoreCase("Resumo Adelante")) {
+					ModeloAdelante modeloAdelante = new ModeloAdelante();
+					try {
+						boleto.setListaResumo(modeloAdelante.gerarTXT(fileName));
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					boleto.setLinhaDigitavel(modeloAdelante.getLinhaDigitavel());
+					boleto.setEndereco(modeloAdelante.getEndereco());
+					boleto.setNumero(modeloAdelante.getNumero());
+				} else if (modelo.getModelo().equalsIgnoreCase("Resumo Correta")) {
+					ModeloAdelante modeloAdelante = new ModeloAdelante();
+					try {
+						boleto.setListaResumo(modeloAdelante.gerarTXT(fileName));
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					boleto.setLinhaDigitavel(modeloAdelante.getLinhaDigitavel());
+					boleto.setEndereco(modeloAdelante.getEndereco());
+					boleto.setNumero(modeloAdelante.getNumero());
+				}  else if (modelo.getModelo().equalsIgnoreCase("Resumo Novara")) {
+					ModeloNovara modeloNovara = new ModeloNovara();
+					try {
+						boleto.setListaResumo(modeloNovara.gerarTXT(fileName));
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					boleto.setLinhaDigitavel(modeloNovara.getLinhaDigitavel());
+					boleto.setEndereco(modeloNovara.getEndereco());
+					boleto.setNumero(modeloNovara.getNumero());
+				}  else if (modelo.getModelo().equalsIgnoreCase("Resumo Grupo Embracon")) {
+					ModeloGrupoEmbracon modeloGrupoEmbracon = new ModeloGrupoEmbracon();
+					try {
+						boleto.setListaResumo(modeloGrupoEmbracon.gerarTXT(fileName));
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					boleto.setLinhaDigitavel(modeloGrupoEmbracon.getLinhaDigitavel());
+					boleto.setEndereco(modeloGrupoEmbracon.getEndereco());
+					boleto.setNumero(modeloGrupoEmbracon.getNumero());
+				} else if (modelo.getModelo().equalsIgnoreCase("ModeloGrupoEmbraconAposVencimento")) {
+					ModeloGrupoEmbraconAposVencimento modeloGrupoEmbracon = new ModeloGrupoEmbraconAposVencimento();
+					try {
+						boleto.setListaResumo(modeloGrupoEmbracon.gerarTXT(fileName));
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					boleto.setLinhaDigitavel(modeloGrupoEmbracon.getLinhaDigitavel());
+					boleto.setEndereco(modeloGrupoEmbracon.getEndereco());
+					boleto.setNumero(modeloGrupoEmbracon.getNumero());
+				} else if (modelo.getModelo().equalsIgnoreCase("ModeloGrupoEmbraconCodigoBarras")) {
+					ModeloGrupoEmbraconCodigoBarras modeloGrupoEmbracon = new ModeloGrupoEmbraconCodigoBarras();
+					try {
+						boleto.setListaResumo(modeloGrupoEmbracon.gerarTXT(fileName));
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					boleto.setLinhaDigitavel(modeloGrupoEmbracon.getLinhaDigitavel());
+					boleto.setEndereco(modeloGrupoEmbracon.getEndereco());
+					boleto.setNumero(modeloGrupoEmbracon.getNumero());
+				}    
 				listaBoletos.add(boleto);
 			}
 			}

@@ -167,6 +167,26 @@ public class AdmModelos {
 		modelo.setModelo("Resumo de rateio ponto");
 		listaModelos.add(modelo);
 		
+		modelo = new Modelos();
+		modelo.setAdministradora("ADELANTE FLORIANÓPOLIS");
+		modelo.setModelo("Resumo Adelante");
+		listaModelos.add(modelo);
+		
+		modelo = new Modelos();
+		modelo.setAdministradora("Correta");
+		modelo.setModelo("Resumo Correta");
+		listaModelos.add(modelo);
+		
+		modelo = new Modelos();
+		modelo.setAdministradora("Novara");
+		modelo.setModelo("Resumo Novara");
+		listaModelos.add(modelo);
+		
+		modelo = new Modelos();
+		modelo.setAdministradora("Grupo Embracon");
+		modelo.setModelo("Resumo Grupo Embracon");
+		listaModelos.add(modelo);
+		
 	}
 
 	public List<Modelos> getListaModelos() {
