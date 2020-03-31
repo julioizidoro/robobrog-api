@@ -179,8 +179,21 @@ public class ModeloResumoRateio {
 		List<Despesas> listaDespesas = new ArrayList<Despesas>();
 		
 		int d=0;
+		boolean seguros =false;
 		for (int i=0;i<linhas.size();i++) {
+			seguros= false;
+			if (despesa.equalsIgnoreCase("Seguro")) {
+				System.out.println(despesa);
+			}
 			if (linhas.get(i).getLinha().length()>= despesa.length()) {
+				
+				if (linhas.get(i).getLinha().length()> despesa.length()) {
+					if (linhas.get(i).getLinha().substring(0, despesa.length()+1).equalsIgnoreCase("Seguros")) {
+						seguros =true;
+					}
+				}
+				
+				if (!seguros) {
 				if (linhas.get(i).getLinha().substring(0, despesa.length()).equalsIgnoreCase(despesa)) {
 					d=i+1;
 					i=linhas.size()+100;
@@ -190,7 +203,11 @@ public class ModeloResumoRateio {
 						i=linhas.size()+100;
 					}
 				}
+			}else {
+				System.out.println("AChou seguros");
 			}
+			}
+			
 		}
 		if (d>0) {
 		for (int i =d;i<linhas.size();i++) {

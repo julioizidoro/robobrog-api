@@ -126,11 +126,29 @@ public class ModeloGrupoEmbraconAposVencimento {
 		String codigobarras = "";
 		for (int i=0;i<linhas.size();i++) {
 			if (linhas.get(i).getLinha().contains("Após o vencimento")) {
-				codigobarras = linhas.get(i+1).getLinha();
-				i = linhas.size() + 100;
+				if (linhas.get(i+1).getLinha().contains("SICREDI")) {
+					codigobarras = linhas.get(i+2).getLinha();
+					i = linhas.size() + 100;
+				} else {
+					codigobarras = linhas.get(i+1).getLinha();
+					i = linhas.size() + 100;
+				}
 			} else if (linhas.get(i).getLinha().contains("APÓS O VENCIMENTO")) {
-				codigobarras = linhas.get(i+1).getLinha();
-				i = linhas.size() + 100;
+				if (linhas.get(i+1).getLinha().contains("SICREDI")) {
+					codigobarras = linhas.get(i+2).getLinha();
+					i = linhas.size() + 100;
+				} else {
+					codigobarras = linhas.get(i+1).getLinha();
+					i = linhas.size() + 100;
+				}
+			}else if (linhas.get(i).getLinha().contains("Após vencimento")) {
+				if (linhas.get(i+1).getLinha().contains("SICREDI")) {
+					codigobarras = linhas.get(i+2).getLinha();
+					i = linhas.size() + 100;
+				} else {
+					codigobarras = linhas.get(i+1).getLinha();
+					i = linhas.size() + 100;
+				}
 			}
 		}
 		codigobarras = codigobarras.replace(".", "");

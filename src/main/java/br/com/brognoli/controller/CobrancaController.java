@@ -57,6 +57,8 @@ import br.com.brognoli.bean.ModeloAdelante;
 import br.com.brognoli.bean.ModeloGrupoEmbracon;
 import br.com.brognoli.bean.ModeloGrupoEmbraconAposVencimento;
 import br.com.brognoli.bean.ModeloGrupoEmbraconCodigoBarras;
+import br.com.brognoli.bean.ModeloGrupoEmbraconMalbec;
+import br.com.brognoli.bean.ModeloLideranca;
 import br.com.brognoli.bean.ModeloNovara;
 import br.com.brognoli.bean.ModeloResumoRateio;
 import br.com.brognoli.bean.ModeloResumoRateioPonto;
@@ -245,7 +247,7 @@ public class CobrancaController {
 	public String exportarExcel() {
 		int importados = 0;
 		//List<Cobranca> listaCobranca = cobrancaRepository.findAll();
-		List<Cobranca> listaCobranca = cobrancaRepository.listarCobranca("Grupo Embracon", "ALBATROZ");
+		List<Cobranca> listaCobranca = cobrancaRepository.listarCobranca("Liderança Administradora de Condomínios", "03/2020");
 		if (listaCobranca != null) {
 		List<Boletos> listaBoletos = new ArrayList<Boletos>();
 		for (Cobranca cobranca : listaCobranca) {
@@ -267,6 +269,7 @@ public class CobrancaController {
 					int i=0;
 				}
 				RegraCondominio regraCondominio = new RegraCondominio();
+				System.out.println(cobranca.getCondominio());
 				modelo = regraCondominio.retornaModelo(modelo, cobranca);
 				Boletos boleto = new Boletos();
 				boleto.setCobranca(cobranca);
@@ -369,7 +372,29 @@ public class CobrancaController {
 					boleto.setLinhaDigitavel(modeloGrupoEmbracon.getLinhaDigitavel());
 					boleto.setEndereco(modeloGrupoEmbracon.getEndereco());
 					boleto.setNumero(modeloGrupoEmbracon.getNumero());
-				}    
+				} else if (modelo.getModelo().equalsIgnoreCase("ModeloGrupoEmbraconMalbec")) {
+					ModeloGrupoEmbraconMalbec modeloGrupoEmbracon = new ModeloGrupoEmbraconMalbec();
+					try {
+						boleto.setListaResumo(modeloGrupoEmbracon.gerarTXT(fileName));
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					boleto.setLinhaDigitavel(modeloGrupoEmbracon.getLinhaDigitavel());
+					boleto.setEndereco(modeloGrupoEmbracon.getEndereco());
+					boleto.setNumero(modeloGrupoEmbracon.getNumero());
+				} else if (modelo.getModelo().equalsIgnoreCase("ModeloLideranca")) {
+					ModeloLideranca modeloLideranca = new ModeloLideranca();
+					try {
+						boleto.setListaResumo(modeloLideranca.gerarTXT(fileName));
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					boleto.setLinhaDigitavel(modeloLideranca.getLinhaDigitavel());
+					boleto.setEndereco(modeloLideranca.getEndereco());
+					boleto.setNumero(modeloLideranca.getNumero());
+				}         
 				listaBoletos.add(boleto);
 			}
 			}

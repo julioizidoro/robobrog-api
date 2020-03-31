@@ -114,7 +114,41 @@ public class ModeloGrupoEmbracon {
 		String codigobarras = "";
 		for (int i=0;i<linhas.size();i++) {
 			if (linhas.get(i).getLinha().equalsIgnoreCase("RECIBO DO PAGADOR")) {
+				if (linhas.get(i+1).getLinha().contains("Após o vencimento")) {
+					if (linhas.get(i+2).getLinha().contains("BRADESCO")) {
+						codigobarras = linhas.get(i+3).getLinha();
+						i = linhas.size() + 100;
+					}else {
+						codigobarras = linhas.get(i+2).getLinha();
+						i = linhas.size() + 100;
+					}
+					
+				} else if (linhas.get(i+1).getLinha().contains("BRADESCO")) {
+					codigobarras = linhas.get(i+2).getLinha();
+					i = linhas.size() + 100;
+				}else if (linhas.get(i+1).getLinha().contains("Caixa")) {
+					codigobarras = linhas.get(i+2).getLinha();
+					i = linhas.size() + 100;
+				}else if (linhas.get(i+1).getLinha().contains("NO BANCO DO BRASIL")) {
+					codigobarras = linhas.get(i+2).getLinha();
+					i = linhas.size() + 100;
+				}else if (linhas.get(i+1).getLinha().contains("Itaú")) {
+					codigobarras = linhas.get(i+3).getLinha();
+					i = linhas.size() + 100;
+				}else if (linhas.get(i+1).getLinha().contains("Apos o venc. ")) {
+					codigobarras = linhas.get(i+2).getLinha();
+					i = linhas.size() + 100;
+				}else if (linhas.get(i+1).getLinha().contains("Bradesco")) {
+					codigobarras = linhas.get(i+2).getLinha();
+					i = linhas.size() + 100;
+				}else {
+					codigobarras = linhas.get(i+1).getLinha();
+					i = linhas.size() + 100;
+				}
+				
+			}else if (linhas.get(i+1).getLinha().contains("Após vencimento")) {
 				codigobarras = linhas.get(i+1).getLinha();
+				i = linhas.size() + 100;
 			}
 		}
 		codigobarras = codigobarras.replace(".", "");
@@ -150,7 +184,11 @@ public class ModeloGrupoEmbracon {
 				if (endereco.charAt(i)!=' ') {
 					numero = numero + endereco.charAt(i);
 				}else {
-					i = linhas.size() + 100;
+					if  (!numero.equalsIgnoreCase("Nº")){
+						i = linhas.size() + 100;
+					} else {
+						numero = numero + endereco.charAt(i);
+					}
 				}
 			}
 		}

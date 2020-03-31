@@ -15,10 +15,12 @@ public interface CobrancaRepository extends JpaRepository<Cobranca, Integer>{
 			+ " and c.data_ref_rateio= :datarateio ")
 		Cobranca getCobranca(@Param("idunidade") String idunidade, @Param("datarateio") String datarateio);
 	
-	@Query("select c from Cobranca c where c.administradora= :administradora ")
-		List<Cobranca> listarCobranca(@Param("administradora") String administradora);
+	@Query("select c from Cobranca c where c.administradora= :administradora and c.data_ref_rateio= :mesano")
+		List<Cobranca> listarCobranca(@Param("administradora") String administradora, @Param("mesano") String mesnao);
 	
-	@Query("select c from Cobranca c where c.administradora= :administradora and c.condominio= :cond")
-	List<Cobranca> listarCobranca(@Param("administradora") String administradora, @Param("cond") String cond);
+	@Query("select c from Cobranca c where c.administradora= :administradora and c.condominio= :cond and c.data_ref_rateio= :mesano")
+	List<Cobranca> listarCobranca(@Param("administradora") String administradora, @Param("cond") String cond, @Param("mesano") String mesnao);
 	
+	@Query("select c from Cobranca c where c.data_ref_rateio= :mesano")
+	List<Cobranca> listarCobrancaRef(@Param("mesano") String mesnao);
 }
