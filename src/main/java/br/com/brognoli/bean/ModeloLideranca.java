@@ -71,6 +71,7 @@ public class ModeloLideranca {
 				iniciar = true;
 			}
 			if (iniciar) {
+				try {
 				Despesas despesa = new Despesas();
 				if (linhas.get(i).getLinha().contains("Taxa de Condomínio")) {
 					despesa.setDescricao(linhas.get(i).getLinha().substring(0,20));
@@ -94,9 +95,18 @@ public class ModeloLideranca {
 					despesa.setDescricao(linhas.get(i).getLinha().substring(0,26));
 					valor = linhas.get(i).getLinha().substring(26, 32);
 					
-				} else if ((linhas.get(i).getLinha().contains("Água")) || (linhas.get(i).getLinha().contains("Agua"))) {
-					despesa.setDescricao(linhas.get(i).getLinha().substring(0,7));
-					valor = linhas.get(i).getLinha().substring(20, 27);
+				} else if (linhas.get(i).getLinha().contains("Água")) {
+					if (linhas.get(i).getLinha().length()>30) {
+						despesa.setDescricao(linhas.get(i).getLinha().substring(0,9));
+						valor = linhas.get(i).getLinha().substring(23, 30);
+					}else {
+						despesa.setDescricao(linhas.get(i).getLinha().substring(0,7));
+						valor = linhas.get(i).getLinha().substring(13, 27);
+					}
+					
+				} else if (linhas.get(i).getLinha().contains("Agua")) {
+						despesa.setDescricao(linhas.get(i).getLinha().substring(0,7));
+						valor = linhas.get(i).getLinha().substring(20, 27);
 				} else if (linhas.get(i).getLinha().contains("Despesas com Materiais")) {
 					despesa.setDescricao(linhas.get(i).getLinha().substring(0,25));
 					valor = linhas.get(i).getLinha().substring(36, 46);
@@ -155,8 +165,17 @@ public class ModeloLideranca {
 					despesa.setDescricao(linhas.get(i).getLinha().substring(0,18));
 					valor = linhas.get(i).getLinha().substring(30, 38);
 				} else if (linhas.get(i).getLinha().contains("Garagem:")) {
-					despesa.setDescricao(linhas.get(i).getLinha().substring(0,17));
-					valor = linhas.get(i).getLinha().substring(31, 39);
+					
+					if (linhas.get(i).getLinha().length()>51) {
+						despesa.setDescricao(linhas.get(i).getLinha().substring(0,34));
+						valor = linhas.get(i).getLinha().substring(44, 53);
+					} else if (linhas.get(i).getLinha().length()>44) {
+						despesa.setDescricao(linhas.get(i).getLinha().substring(0,24));
+						valor = linhas.get(i).getLinha().substring(38, 44);
+					} else {
+						despesa.setDescricao(linhas.get(i).getLinha().substring(0,18));
+						valor = linhas.get(i).getLinha().substring(29, 36);
+					}  
 				} else if (linhas.get(i).getLinha().contains("Garagem")) {
 					despesa.setDescricao(linhas.get(i).getLinha().substring(0,9));
 					valor = linhas.get(i).getLinha().substring(24, 31);
@@ -205,14 +224,9 @@ public class ModeloLideranca {
 				} else if (linhas.get(i).getLinha().contains("Fundo Trabalhista")) {
 					despesa.setDescricao(linhas.get(i).getLinha().substring(0,20));
 					valor = linhas.get(i).getLinha().substring(32, 39);
-				} else {
-					System.out.println(linhas.get(i).getLinha());
 				}
 				if (valor.length()>0) {
-					valor = valor.replace(".", "");
-					valor = valor.replace(",", ".");
-					valor = valor.replace(" ", "");
-					valor = valor.replace(" ", "");
+					
 					String novovalor =valor;
 					valor= "";
 					for(int c=0;c<novovalor.length();c++) {
@@ -226,13 +240,24 @@ public class ModeloLideranca {
 						    || (novovalor.charAt(c)=='7')
 						    || (novovalor.charAt(c)=='8')
 						    || (novovalor.charAt(c)=='9')
-						    || (novovalor.charAt(c)=='.')	
+						    || (novovalor.charAt(c)==',')	
 								) {
 							valor = valor + novovalor.charAt(c);
 						}
 					}
-					despesa.setValor(Float.parseFloat(valor));
+					try {
+						valor = valor.replace(".", "");
+						valor = valor.replace(",", ".");
+						valor = valor.replace(" ", "");
+						valor = valor.replace(" ", "");
+						despesa.setValor(Float.parseFloat(valor));
+					} catch (Exception e) {
+						System.out.println(valor);
+						System.out.println(linhas.get(i).getLinha());
+					}
+				
 					listaDepesas.add(despesa);
+				
 				}
 				
 				if (linhas.get(i+2).getLinha().contains("DEMONSTRATIVO DE RECEITAS/DESPESAS")) {
@@ -240,12 +265,22 @@ public class ModeloLideranca {
 					posicaoTotal = i + 1;
 					i = linhas.size() +100;
 				}
+			} catch (Exception e) {
+				System.out.println(linhas.get(i).getLinha());
+				System.out.println(valor);
+			}
 				
 			}
 			
 		}
 		resumo.setListaDespesas(listaDepesas);
-		String valor = linhas.get(posicaoTotal).getLinha().substring(6, linhas.get(posicaoTotal).getLinha().length());
+		String valor ="0";
+		if (linhas.get(posicaoTotal).getLinha().length()>6) {
+			valor = linhas.get(posicaoTotal).getLinha().substring(6, linhas.get(posicaoTotal).getLinha().length());
+		} else {
+			valor = "0";
+		}
+		
 		valor = valor.replace(".", "");
 		valor = valor.replace(",", ".");
 		valor = valor.replace(" ", "");
@@ -274,6 +309,7 @@ public class ModeloLideranca {
 	
 	
 	public void lerLinhaDigitavel(List<Linhas> linhas) {
+		
 		String codigobarras = "";
 		for (int i=0;i<linhas.size();i++) {
 			if (linhas.get(i).getLinha().equalsIgnoreCase("Autenticação Mecânica")) {
@@ -283,7 +319,6 @@ public class ModeloLideranca {
 		}
 		codigobarras = codigobarras.replace(".", "");
 		codigobarras = codigobarras.replace(" ", "");
-		System.out.println(codigobarras);
 		setLinhaDigitavel(codigobarras);
 	}
 	

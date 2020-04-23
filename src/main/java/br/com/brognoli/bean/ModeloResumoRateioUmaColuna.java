@@ -137,10 +137,6 @@ public class ModeloResumoRateioUmaColuna {
 		
 		retorno = retorno.replace(".", "");
 		retorno = retorno.replace(",", ".");
-		if (retorno.equalsIgnoreCase("Pagamento")) {
-			System.out.println(retorno);
-		}
-		
 		return retorno;
 	}
 	
@@ -160,7 +156,6 @@ public class ModeloResumoRateioUmaColuna {
 	
 	
 	public List<Despesas> listarDespesas(List<Linhas> linhas, String despesa){
-		System.out.println(despesa);
 		List<Despesas> listaDespesas = new ArrayList<Despesas>();
 		
 		int d=0;
@@ -194,10 +189,6 @@ public class ModeloResumoRateioUmaColuna {
 					descricao ="Total:";
 				}
 			}
-			if (descricao.equalsIgnoreCase("Lavação, pint int e ext, rest blocos e")) {
-				System.out.println(descricao);
-			}
-			 
 			if ((descricao.equalsIgnoreCase("Total:")) || (descricao.equalsIgnoreCase("Total geral:"))) {
 				i = linhas.size()+100;
 			} else if (descricao.length()>0) {
@@ -228,7 +219,6 @@ public class ModeloResumoRateioUmaColuna {
 					ld = ld.replace(".", "");
 					ld = ld.replace(" ", "");
 					setLinhaDigitavel(ld);
-					System.out.println(ld);
 					i = linhas.size() + 100;
 					lerEndereco(linhas);
 				}

@@ -108,7 +108,6 @@ public class ModeloNovara {
 		}
 		codigobarras = codigobarras.replace(".", "");
 		codigobarras = codigobarras.replace(" ", "");
-		System.out.println(codigobarras);
 		setLinhaDigitavel(codigobarras);
 	}
 	

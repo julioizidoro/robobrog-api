@@ -87,7 +87,6 @@ public class ModeloGrupoEmbraconMalbec {
 			String valor = linhas.get(i+(inicio/2)).getLinha();
 			valor = valor.replace(".", "");
 			valor = valor.replace(",", ".");
-			System.out.println(i);
 			despesa.setValor(Float.parseFloat(valor));
 			listaDepesas.add(despesa);
 		}
@@ -116,7 +115,6 @@ public class ModeloGrupoEmbraconMalbec {
 		}
 		codigobarras = codigobarras.replace(".", "");
 		codigobarras = codigobarras.replace(" ", "");
-		System.out.println(codigobarras);
 		setLinhaDigitavel(codigobarras);
 	}
 	

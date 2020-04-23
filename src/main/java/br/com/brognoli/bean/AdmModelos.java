@@ -83,6 +83,12 @@ public class AdmModelos {
 		listaModelos.add(modelo);
 		
 		modelo = new Modelos();
+		modelo.setAdministradora("Cidade Contabilidade");
+		modelo.setModelo("Resumo de rateio");
+		listaModelos.add(modelo);
+		
+		
+		modelo = new Modelos();
 		modelo.setAdministradora("Sorrento");
 		modelo.setModelo("Resumo de rateio ponto");
 		listaModelos.add(modelo);
@@ -185,6 +191,11 @@ public class AdmModelos {
 		modelo = new Modelos();
 		modelo.setAdministradora("Grupo Embracon");
 		modelo.setModelo("Resumo Grupo Embracon");
+		listaModelos.add(modelo);
+		
+		modelo = new Modelos();
+		modelo.setAdministradora("SINQ");
+		modelo.setModelo("Resumo de rateio");
 		listaModelos.add(modelo);
 		
 	}

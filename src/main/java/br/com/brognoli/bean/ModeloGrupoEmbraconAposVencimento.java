@@ -103,7 +103,6 @@ public class ModeloGrupoEmbraconAposVencimento {
 			String valor = linhas.get(i).getLinha();
 			valor = valor.replace(".", "");
 			valor = valor.replace(",", ".");
-			System.out.println(i);
 			despesa.setValor(Float.parseFloat(valor));
 			listaDepesas.add(despesa);
 		}
@@ -153,7 +152,6 @@ public class ModeloGrupoEmbraconAposVencimento {
 		}
 		codigobarras = codigobarras.replace(".", "");
 		codigobarras = codigobarras.replace(" ", "");
-		System.out.println(codigobarras);
 		setLinhaDigitavel(codigobarras);
 	}
 	

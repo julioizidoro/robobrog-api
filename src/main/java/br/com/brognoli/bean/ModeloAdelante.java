@@ -112,7 +112,6 @@ public class ModeloAdelante {
 		codigobarras = codigobarras + b2 + " " + b1.substring(12, b1.length());
 		codigobarras = codigobarras.replace(".", "");
 		codigobarras = codigobarras.replace(" ", "");
-		System.out.println(codigobarras);
 		setLinhaDigitavel(codigobarras);
 	}
 	

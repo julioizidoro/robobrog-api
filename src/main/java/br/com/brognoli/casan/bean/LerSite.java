@@ -65,8 +65,7 @@ public class LerSite {
 	    					fechouDriver = true;
 		    				lista.set(i,verificarSituacao(lista.get(i)));
 		    				logof();
-		    				System.out.println(i);
-	    				} else {
+		    			} else {
 	    					fechouDriver = true;
 	    					lista.get(i).setSituacao("ERRO AO LOGAR E-CASAN");
 	    				}
@@ -290,7 +289,6 @@ public class LerSite {
             		if (file!=null) {
             			Fatura fatura = lerPDF(file);
             			fatura.setArquivo(listaImoveis.get(i).getListaFatura().get(n).getArquivo());
-                		System.out.println(i + "," + n);
                 		if (fatura !=null) {
                 			novaListaFatura.add(fatura);
                 		}

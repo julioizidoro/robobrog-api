@@ -3,6 +3,7 @@ package br.com.brognoli.controller;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -10,13 +11,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.lang.reflect.Type;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import javax.net.ssl.HttpsURLConnection;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.apache.http.client.HttpClient;
@@ -33,12 +37,15 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.CookieManager;
@@ -52,6 +59,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import br.com.brognoli.bean.AdmModelos;
+import br.com.brognoli.bean.Cobrancaresultado;
 import br.com.brognoli.bean.ExportarExcel;
 import br.com.brognoli.bean.ModeloAdelante;
 import br.com.brognoli.bean.ModeloGrupoEmbracon;
@@ -73,6 +81,9 @@ import br.com.brognoli.model.Periodo;
 import br.com.brognoli.model.Query;
 import br.com.brognoli.repository.CobrancaArquivoRepository;
 import br.com.brognoli.repository.CobrancaRepository;
+import br.com.brognoli.service.S3Service;
+import br.com.brognoli.util.Conversor;
+
 
 
 @SuppressWarnings("unused")
@@ -85,6 +96,10 @@ public class CobrancaController {
 	private CobrancaRepository cobrancaRepository;
 	@Autowired
 	private CobrancaArquivoRepository cobrancaArquivoRepository;
+	private List<Cobrancaresultado> listaCobrancaResultado;
+	@Autowired
+	private S3Service s3Service;
+	private String caminhoDir= "\\\\arqsrv02\\documentos\\centralfinanceira\\BOLETOS DE CONDOMÍNIOS\\Winker\\";
 	
 	@PostMapping("/salvar")
 	@ResponseStatus(HttpStatus.CREATED)
@@ -92,19 +107,35 @@ public class CobrancaController {
 		return cobrancaRepository.save(acesso);
 	}
 	
-	@GetMapping("/gerarpdf")
+	@GetMapping("/getlista")
 	@ResponseStatus(HttpStatus.CREATED)
-	public String salvarPDF() {
-		int importados = 0;
+	public ResponseEntity<List<Cobrancaresultado>> getListarCobranca() {
+		return ResponseEntity.ok(listaCobrancaResultado);
+	}
+	
+	
+	
+	@PostMapping("/gerarlista")
+	@ResponseStatus(HttpStatus.CREATED)
+	public void listarCobranca(@RequestParam(name="file") MultipartFile file) {
+		listaCobrancaResultado = new ArrayList<Cobrancaresultado>();
 		List<Cobranca> listaCobranca = new ArrayList<Cobranca>();
 		BufferedReader br = null;
 		try {
-			br = new BufferedReader(new FileReader("c:/logs/winker.txt"));
+			InputStream is = file.getInputStream();
+			Reader reader = new InputStreamReader(is);
+			br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
 			Gson gson = new Gson();// GsonBuilder().setFieldNamingStrategy(strategy).create();
 			final Type type = new TypeToken<List<Cobranca>>() {
 			}.getType();
 			listaCobranca = gson.fromJson(br, type);
 			br.close();
+			for (Cobranca cobranca : listaCobranca) {
+				Cobrancaresultado cr = new Cobrancaresultado();
+				cr.setCobranca(cobranca);
+				cr.setCapturou(false);
+				listaCobrancaResultado.add(cr);
+			}
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -112,7 +143,20 @@ public class CobrancaController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		if (listaCobranca != null) {
+	}
+	
+	@GetMapping("/gerarpdf")
+	@ResponseStatus(HttpStatus.CREATED)
+	public ResponseEntity<List<Cobrancaresultado>> salvarPDF() {
+		int importados = 0;
+		if (listaCobrancaResultado != null) {
+			Conversor c = new Conversor();
+			String mesAno = c.getMesAno(listaCobrancaResultado.get(0).getCobranca().getData_vencimento());
+			String dir = caminhoDir +  mesAno;
+			File dirFile = new File(dir);
+			if (!dirFile.exists()) {
+				dirFile.mkdir();
+			}
 			final WebClient webClient = new WebClient(BrowserVersion.FIREFOX_60);
 			// O CookieManager vai gerenciar os dados da sessão
 			CookieManager cookieMan = new CookieManager();
@@ -141,15 +185,12 @@ public class CobrancaController {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-			for (Cobranca cobranca : listaCobranca) {
+			for (int i = 0;i<listaCobrancaResultado.size();i++) {
+				Cobranca cobranca = listaCobrancaResultado.get(i).getCobranca();
 				Cobranca cobrancaGravada = null;
-				System.out.println(cobranca.getId_unidade());
 				if ((cobranca.getId_unidade()!=null) && (cobranca.getData_ref_rateio()!=null)) {
 					cobrancaGravada = cobrancaRepository.getCobranca(cobranca.getId_unidade(), cobranca.getData_ref_rateio());
-				}else {
-					System.out.println("NULO");
-				}
-				if (cobrancaGravada!=null) {
+				}if (cobrancaGravada!=null) {
 					cobranca = updateCobranca(cobranca, cobrancaGravada);
 				} else {
 					cobranca = cobrancaRepository.save(cobranca);
@@ -159,7 +200,7 @@ public class CobrancaController {
 					String fileName = cobranca.getCondominio() + "_" + cobranca.getUnidade() + "_"
 							+ cobranca.getReferencia() + ".pdf"; 
 					fileName = fileName.replace("/", " ");
-					fileName = "c:\\logs\\pdf\\" + fileName;
+					fileName = caminhoDir + mesAno  + "\\" + fileName;
 					File file = new File(fileName);
 					if (cobranca.getId_unidade_cobranca() != null) {
 						url = "https://app.winker.com.br/intra/meuCondominio/boleto/view/id/"
@@ -170,40 +211,38 @@ public class CobrancaController {
 						gPDF = true;
 					}
 					if (gPDF) {
-					Cobrancaarquivo arquivo = cobrancaArquivoRepository.getArquivo(cobranca.getIdcobranca());	
-					if (arquivo == null) {
-						arquivo = new Cobrancaarquivo();
-					}
-					arquivo.setCobranca(cobranca);
-					arquivo.setDatagravacao(new Date());;
-					arquivo.setNomearquivo(fileName);
-					arquivo = cobrancaArquivoRepository.save(arquivo);
-					InputStream is;
-					try {
-						is = webClient.getPage(url).getWebResponse().getContentAsStream();
-						OutputStream out = new FileOutputStream(file);
-						byte[] buffer = new byte[8 * 1024];
-						int bytesRead;
-						while ((bytesRead = is.read(buffer)) != -1) {
-							out.write(buffer, 0, bytesRead);
+						Cobrancaarquivo arquivo = cobrancaArquivoRepository.getArquivo(cobranca.getIdcobranca());	
+						if (arquivo == null) {
+							arquivo = new Cobrancaarquivo();
 						}
-						out.close();
-				
-						
-					} catch (FailingHttpStatusCodeException | IOException e) {
+						arquivo.setCobranca(cobranca);
+						arquivo.setDatagravacao(new Date());;
+						arquivo.setNomearquivo(fileName);
+						arquivo = cobrancaArquivoRepository.save(arquivo);
+						InputStream is;
+						try {
+							is = webClient.getPage(url).getWebResponse().getContentAsStream();
+							OutputStream out = new FileOutputStream(file);
+							byte[] buffer = new byte[8 * 1024];
+							int bytesRead;
+							while ((bytesRead = is.read(buffer)) != -1) {
+								out.write(buffer, 0, bytesRead);
+							}
+							out.close();
+						} catch (FailingHttpStatusCodeException | IOException e) {
 						// TODO Auto-generated catch block
-						e.printStackTrace();
+							e.printStackTrace();
+						}
+						listaCobrancaResultado.get(i).setCapturou(true);
+						importados++;
+					}else {
+						listaCobrancaResultado.get(i).setCapturou(false);
 					}
-					importados++;
-				}
+				}	
 			}
-			
-			System.out.println("PDF Salvos : " + String.valueOf(importados));
-			System.out.println("PDF não Encontrados : " + String.valueOf(listaCobranca.size() - importados));
-			
-		}
-		
-		return "ok";
+		System.out.println("Terminou");
+		return ResponseEntity.ok(listaCobrancaResultado);
+
 	}
 	
 	public Cobranca updateCobranca(Cobranca atual, Cobranca gravada) {
@@ -242,18 +281,21 @@ public class CobrancaController {
 	}
 	
 	
-	@GetMapping("/gerarexcel")
+	
+	
+	@GetMapping("/gerarexcel/{mes}/{ano}/{administradora}")
 	@ResponseStatus(HttpStatus.CREATED)
-	public String exportarExcel() {
+	public ResponseEntity<Void> exportarExcel(@PathVariable("mes") String mes, @PathVariable("ano") String ano, @PathVariable("administradora") String administradora, HttpServletResponse response) {
+		if (administradora.equalsIgnoreCase("@")) {
+			administradora= "";
+		}
 		int importados = 0;
 		//List<Cobranca> listaCobranca = cobrancaRepository.findAll();
-		List<Cobranca> listaCobranca = cobrancaRepository.listarCobranca("Liderança Administradora de Condomínios", "03/2020");
-		if (listaCobranca != null) {
+		List<Cobrancaarquivo> listaCobrancaArquivo = cobrancaArquivoRepository.getArquivos(administradora, mes + "/" + ano);
+		if (listaCobrancaArquivo != null) {
 		List<Boletos> listaBoletos = new ArrayList<Boletos>();
-		for (Cobranca cobranca : listaCobranca) {
-			System.out.println(cobranca.toString());
+		for (Cobrancaarquivo arquivo : listaCobrancaArquivo) {
 			boolean gPDF = false;
-			Cobrancaarquivo arquivo = cobrancaArquivoRepository.getArquivo(cobranca.getIdcobranca());
 			String fileName = "";
 			File file = null;
 			if (arquivo!=null) {
@@ -263,16 +305,12 @@ public class CobrancaController {
 			}
 			if (gPDF) {
 			AdmModelos admModelos = new AdmModelos();
-			Modelos modelo = admModelos.validarModelo(cobranca.getAdministradora());
+			Modelos modelo = admModelos.validarModelo(arquivo.getCobranca().getAdministradora());
 			if (modelo !=null) {
-				if(cobranca.getIdcobranca()==2242) {
-					int i=0;
-				}
 				RegraCondominio regraCondominio = new RegraCondominio();
-				System.out.println(cobranca.getCondominio());
-				modelo = regraCondominio.retornaModelo(modelo, cobranca);
+				modelo = regraCondominio.retornaModelo(modelo, arquivo.getCobranca());
 				Boletos boleto = new Boletos();
-				boleto.setCobranca(cobranca);
+				boleto.setCobranca(arquivo.getCobranca());
 				if (modelo.getModelo().equalsIgnoreCase("Resumo de rateio")) {
 					ModeloResumoRateio modeloResumoRateio = new ModeloResumoRateio();
 					try {
@@ -403,13 +441,35 @@ public class CobrancaController {
 		if (listaBoletos!=null) {
 			if (listaBoletos.size()>0) {
 				ExportarExcel ex = new ExportarExcel();
-				ex.gerar(listaBoletos);
+				ex.gerar(listaBoletos, mes + "/" + ano);
+				File file =ex.getFile();
+				URI uri = s3Service.uploadFile(file);
+				return ResponseEntity.created(uri).build();
 			}
 		}
 					
 		}
-		return "ok";
+		return ResponseEntity.notFound().build();
 	}
+	
+	
+	@GetMapping("/mesano/{mes}/{ano}/{administradora}")
+	@ResponseStatus(HttpStatus.CREATED)
+	public ResponseEntity<List<Cobrancaarquivo>> getListaCobranca(@PathVariable("mes") String mes, @PathVariable("ano") String ano, @PathVariable("administradora") String administradora) {
+		if (administradora.equalsIgnoreCase("@")) {
+			administradora = "";
+		}
+		List<Cobrancaarquivo> listaCobrancaArquivo = cobrancaArquivoRepository.getArquivos(administradora, mes + "/" + ano);
+		if (listaCobrancaArquivo==null) {
+			return ResponseEntity.notFound().build();
+		}
+		return ResponseEntity.ok(listaCobrancaArquivo);
+	}
+	
+	
+	
+	
+	
 	
 
 }

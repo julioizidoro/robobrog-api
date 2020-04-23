@@ -15,15 +15,26 @@ import br.com.brognoli.model.Boletos;
 import br.com.brognoli.model.Resumo;
 
 public class ExportarExcel {
-	
-public void gerar(List<Boletos> listaBoletos) {
-		
+
+	private File file;
+
+	public File getFile() {
+		return file;
+	}
+
+	public void setFile(File file) {
+		this.file = file;
+	}
+
+	public void gerar(List<Boletos> listaBoletos, String mesano) {
+
 		HSSFWorkbook workbook = new HSSFWorkbook();
 		HSSFSheet firstSheet = workbook.createSheet("Eventos Valores");
 		FileOutputStream fos = null;
-		
+
 		try {
-			fos = new FileOutputStream(new File("c:\\logs\\listaWinker.xls"));
+			file = new File("Winker_" + mesano + ".xls");
+			fos = new FileOutputStream(file);
 			int i = 0;
 			HSSFRow row = firstSheet.createRow(i);
 			row.createCell(0).setCellValue("Edificio");
@@ -38,35 +49,32 @@ public void gerar(List<Boletos> listaBoletos) {
 			row.createCell(9).setCellValue("Total");
 			row.createCell(10).setCellValue("Desconto");
 			int l = 11;
-			int maior =0;
+			int maior = 0;
 			for (Boletos c : listaBoletos) {
-				int item=0;
-				if (c.getListaResumo()!=null) {
-					for (Resumo r :c.getListaResumo()) {
-						if (r.getListaDespesas()!=null) {
+				int item = 0;
+				if (c.getListaResumo() != null) {
+					for (Resumo r : c.getListaResumo()) {
+						if (r.getListaDespesas() != null) {
 							if (maior < r.getListaDespesas().size()) {
 								maior = r.getListaDespesas().size();
 							}
 						}
 					}
 				}
-				
+
 			}
-			
-			for (int n =0; n<=maior;n++) {
-				if (l<=n) {
+
+			for (int n = 0; n <= maior; n++) {
+				if (l <= n) {
 					row.createCell(l).setCellValue("Item" + String.valueOf(n));
 					l++;
 					row.createCell(l).setCellValue("Valor Item" + String.valueOf(n));
 					l++;
 				}
-				System.out.println(l);
 			}
-			
 
-			
 			i++;
-			
+
 			for (Boletos c : listaBoletos) {
 				row = firstSheet.createRow(i);
 				row.createCell(0).setCellValue(c.getCobranca().getCondominio());
@@ -78,44 +86,57 @@ public void gerar(List<Boletos> listaBoletos) {
 				row.createCell(6).setCellValue(ConvercaoData(c.getCobranca().getData_vencimento()));
 				row.createCell(7).setCellValue(c.getLinhaDigitavel());
 				row.createCell(8).setCellValue("");
-				row.createCell(9).setCellValue(c.getCobranca().getValor_total_cobranca());
+				row.createCell(9).setCellValue(calcularValorTotal(c.getListaResumo()));
 				row.createCell(10).setCellValue("0,00");
 				l = 11;
-				if (c.getListaResumo()!=null) {
-					for (Resumo r :c.getListaResumo()) {
-						if (r.getListaDespesas()!=null) {
-							for (int n =0; n<r.getListaDespesas().size();n++) {
+				if (c.getListaResumo() != null) {
+					for (Resumo r : c.getListaResumo()) {
+						if (r.getListaDespesas() != null) {
+							for (int n = 0; n < r.getListaDespesas().size(); n++) {
 								row.createCell(l).setCellValue(r.getListaDespesas().get(n).getDescricao());
 								l++;
-								if (l>=255) {
-									System.out.println(c.getCobranca().getId_unidade_cobranca());
-								}
 								row.createCell(l).setCellValue(r.getListaDespesas().get(n).getValor());
 								l++;
-								System.out.print(l);
-								
-								if (l>=255) {
-									System.out.println(c.getCobranca().getId_unidade_cobranca());
-								}
 							}
 						}
 					}
 				}
 				i++;
 			}
-			
+
 			workbook.write(fos);
 
-		}catch (Exception e) {
+		} catch (Exception e) {
 			System.out.println(e);
 		}
-		
+
 		try {
 			fos.flush();
 			fos.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
+	}
+
+	public Float calcularValorTotal(List<Resumo> listaResumo) {
+		Float valor = 0.0f;
+		if (listaResumo == null) {
+			return valor;
+		}
+		for (int i = 0; i < listaResumo.size(); i++) {
+			if (listaResumo.get(i).getListaDespesas() == null) {
+				valor = valor + 0;
+			} else
+				for (int d = 0; d < listaResumo.get(i).getListaDespesas().size(); d++) {
+					try {
+						valor = valor + listaResumo.get(i).getListaDespesas().get(d).getValor();
+					} catch (Exception e) {
+						System.out.println(i + " - " + d);
+					}
+				}
+		}
+		return valor;
 
 	}
 

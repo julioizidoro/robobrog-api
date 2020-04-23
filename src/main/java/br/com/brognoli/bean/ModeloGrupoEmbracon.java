@@ -91,8 +91,12 @@ public class ModeloGrupoEmbracon {
 			String valor = linhas.get(i).getLinha();
 			valor = valor.replace(".", "");
 			valor = valor.replace(",", ".");
-			System.out.println(i);
-			despesa.setValor(Float.parseFloat(valor));
+			try {
+				despesa.setValor(Float.parseFloat(valor));
+			} catch (Exception e) {
+				System.out.println(valor);
+				despesa.setValor(0.0f);
+			}
 			listaDepesas.add(despesa);
 		}
 		resumo.setListaDespesas(listaDepesas);
@@ -153,7 +157,6 @@ public class ModeloGrupoEmbracon {
 		}
 		codigobarras = codigobarras.replace(".", "");
 		codigobarras = codigobarras.replace(" ", "");
-		System.out.println(codigobarras);
 		setLinhaDigitavel(codigobarras);
 	}
 	

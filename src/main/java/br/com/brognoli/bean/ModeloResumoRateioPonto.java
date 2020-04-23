@@ -81,7 +81,6 @@ public class ModeloResumoRateioPonto {
 			resumo.setDescicao(despesas);
 			resumo.setValor(Float.parseFloat(valor));
 			List<Despesas> listaDepesas = new ArrayList<Despesas>();
-			System.out.println(despesas);
 			if ((!resumo.getDescicao().contains("Gás")) && (!resumo.getDescicao().contains("gás"))
 					&& (!resumo.getDescicao().contains("Água")) && (!resumo.getDescicao().contains("água")) && (!resumo.getDescicao().contains("ÁGUA"))
 					&&  (!resumo.getDescicao().contains("Chiller")) && (!resumo.getDescicao().contains("Fundo de")) && (!resumo.getDescicao().contains("Óleo D")) 
@@ -161,10 +160,6 @@ public class ModeloResumoRateioPonto {
 		}
 		retorno = retorno.replace(".", "");
 		retorno = retorno.replace(",", ".");
-		if (retorno.equalsIgnoreCase("Pagamento")) {
-			System.out.println(retorno);
-		}
-		
 		return retorno;
 	}
 	
@@ -231,7 +226,6 @@ public class ModeloResumoRateioPonto {
 					ld = ld.replace(".", "");
 					ld = ld.replace(" ", "");
 					setLinhaDigitavel(ld);
-					System.out.println(ld);
 					i = linhas.size() + 100;
 					lerEndereco(linhas);
 				}

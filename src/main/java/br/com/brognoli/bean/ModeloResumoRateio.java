@@ -133,9 +133,6 @@ public class ModeloResumoRateio {
 	}
 	
 	public String retornaValorDespesas(Linhas linha) {
-		if (linha.getLinha().equalsIgnoreCase("Taxa de Condomínio  254,05")) {
-			System.out.print("parou");
-		}
 		String retorno = "";
 		boolean ler = false;
 		for (int i=linha.getLinha().length()-1;i>0;i--) {
@@ -152,9 +149,6 @@ public class ModeloResumoRateio {
 		
 		retorno = retorno.replace(".", "");
 		retorno = retorno.replace(",", ".");
-		if (retorno.equalsIgnoreCase("Pagamento")) {
-			System.out.println(retorno);
-		}
 		
 		return retorno;
 	}
@@ -175,16 +169,12 @@ public class ModeloResumoRateio {
 	
 	
 	public List<Despesas> listarDespesas(List<Linhas> linhas, String despesa){
-		System.out.println(despesa);
 		List<Despesas> listaDespesas = new ArrayList<Despesas>();
 		
 		int d=0;
 		boolean seguros =false;
 		for (int i=0;i<linhas.size();i++) {
 			seguros= false;
-			if (despesa.equalsIgnoreCase("Seguro")) {
-				System.out.println(despesa);
-			}
 			if (linhas.get(i).getLinha().length()>= despesa.length()) {
 				
 				if (linhas.get(i).getLinha().length()> despesa.length()) {
@@ -203,8 +193,6 @@ public class ModeloResumoRateio {
 						i=linhas.size()+100;
 					}
 				}
-			}else {
-				System.out.println("AChou seguros");
 			}
 			}
 			
@@ -226,10 +214,6 @@ public class ModeloResumoRateio {
 					descricao ="Total:";
 				}
 			}
-			if (descricao.equalsIgnoreCase("Lavação, pint int e ext, rest blocos e")) {
-				System.out.println(descricao);
-			}
-			 
 			if ((descricao.equalsIgnoreCase("Total:")) || (descricao.equalsIgnoreCase("Total geral:"))) {
 				i = linhas.size()+100;
 			} else if (descricao.length()>0) {
@@ -260,7 +244,6 @@ public class ModeloResumoRateio {
 					ld = ld.replace(".", "");
 					ld = ld.replace(" ", "");
 					setLinhaDigitavel(ld);
-					System.out.println(ld);
 					i = linhas.size() + 100;
 					lerEndereco(linhas);
 				}
