@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -13,6 +14,8 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 
 import br.com.brognoli.model.Boletos;
 import br.com.brognoli.model.Resumo;
+import br.com.brognoli.model.Winkerexcel;
+import br.com.brognoli.model.Winkerexcelvalor;
 
 public class ExportarExcel {
 
@@ -26,8 +29,41 @@ public class ExportarExcel {
 		this.file = file;
 	}
 
-	public void gerar(List<Boletos> listaBoletos, String mesano) {
+	public void gerarWinker(List<Boletos> listaBoletos, String mesano) {
+		
+	/*	
+		List<Winkerexcel> lista = new ArrayList<Winkerexcel>();
+		for (Boletos c : listaBoletos) {
+			Winkerexcel we = new Winkerexcel();
+			we.setEdificio(c.getCobranca().getCondominio());
+			we.setEndereco(c.getEndereco());
+			we.setNumero(c.getNumero());
+			we.setBloco("");
+			we.setUnidade(c.getCobranca().getUnidade());
+			we.setCompetencia(c.getCobranca().getData_ref_rateio());
+			we.setVencimento(ConvercaoData(c.getCobranca().getData_vencimento()));
+			we.setLinhadigitavel(c.getLinhaDigitavel());
+			we.setCodigobarras("");
+			we.setTotal(calcularValorTotal(c.getListaResumo()));
+			we.setDesconto("0,00");
+			List<Winkerexcelvalor> listaValor = new ArrayList<Winkerexcelvalor>();
+			if (c.getListaResumo() != null) {
+				for (Resumo r : c.getListaResumo()) {
+					if (r.getListaDespesas() != null) {
+						for (int n = 0; n < r.getListaDespesas().size(); n++) {
+							Winkerexcelvalor wev = new Winkerexcelvalor();
+							wev.setDescricao(r.getListaDespesas().get(n).getDescricao());
+							wev.setValor(r.getListaDespesas().get(n).getValor());
+						}
+					}
+				}
+			}
+			we.setListawinkerexcelvalor(listaValor);
+		}
+		return lista
+		*/
 
+		
 		HSSFWorkbook workbook = new HSSFWorkbook();
 		HSSFSheet firstSheet = workbook.createSheet("Eventos Valores");
 		FileOutputStream fos = null;

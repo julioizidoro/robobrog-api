@@ -441,7 +441,7 @@ public class CobrancaController {
 		if (listaBoletos!=null) {
 			if (listaBoletos.size()>0) {
 				ExportarExcel ex = new ExportarExcel();
-				ex.gerar(listaBoletos, mes + "/" + ano);
+				ex.gerarWinker(listaBoletos, mes + "_" + ano);
 				File file =ex.getFile();
 				URI uri = s3Service.uploadFile(file);
 				return ResponseEntity.created(uri).build();
