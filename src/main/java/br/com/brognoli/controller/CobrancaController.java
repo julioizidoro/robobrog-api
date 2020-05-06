@@ -211,7 +211,16 @@ public class CobrancaController {
 						gPDF = true;
 					}
 					if (gPDF) {
-						Cobrancaarquivo arquivo = cobrancaArquivoRepository.getArquivo(cobranca.getIdcobranca());	
+						List<Cobrancaarquivo> listaTemp = cobrancaArquivoRepository.getArquivo(cobranca.getIdcobranca());
+						Cobrancaarquivo arquivo = null;
+						if (listaTemp !=null) {
+							if (listaTemp.size()>0) {
+								arquivo =  listaTemp.get(0);
+								if (listaTemp.size()>1) {
+									cobrancaArquivoRepository.delete(listaTemp.get(1));
+								}
+							}
+						}
 						if (arquivo == null) {
 							arquivo = new Cobrancaarquivo();
 						}
@@ -304,11 +313,12 @@ public class CobrancaController {
 					gPDF =true;
 			}
 			if (gPDF) {
+				System.out.println(file.getName());
 			AdmModelos admModelos = new AdmModelos();
 			Modelos modelo = admModelos.validarModelo(arquivo.getCobranca().getAdministradora());
 			if (modelo !=null) {
 				RegraCondominio regraCondominio = new RegraCondominio();
-				modelo = regraCondominio.retornaModelo(modelo, arquivo.getCobranca());
+				modelo = regraCondominio.retornaModelo(modelo, arquivo.getCobranca().getCondominio());
 				Boletos boleto = new Boletos();
 				boleto.setCobranca(arquivo.getCobranca());
 				if (modelo.getModelo().equalsIgnoreCase("Resumo de rateio")) {

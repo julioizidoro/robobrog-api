@@ -18,7 +18,8 @@ import br.com.brognoli.model.Despesas;
 import br.com.brognoli.model.Linhas;
 import br.com.brognoli.model.Resumo;
 
-public class ModeloGrupoEmbracon {
+public class ModeloFama {
+	
 	private List<Resumo> listaResumo;
 	private int linhaResumo;
 	private String Endereco;
@@ -51,65 +52,106 @@ public class ModeloGrupoEmbracon {
         lerResumo(linhas);
         lerLinhaDigitavel(linhas);
         lerEndereco(linhas);
-        return listaResumo;
+       return listaResumo;
 	}
 	
 	public void lerResumo(List<Linhas> linhas) {
-		String campo = "Correio:";
 		boolean lendo = false;
 		Resumo resumo = new Resumo();
 		resumo.setDescicao("Composição das Despesas");
-		int inicio=0;
-		int posicao =0;
-		boolean achouDescricao = false;
-		for (int i=0;i<linhas.size();i++) {
-			if (linhas.get(i).getLinha().contains(campo) && (!lendo)) {
-				lendo = true;
-				i = i+1;
-				posicao = i;
-			} else if (linhas.get(i).getLinha().contains("RECIBO DO PAGADOR") && (lendo)) {
-				lendo = false;
-				i = linhas.size()+100;
-			}else if (!linhas.get(i).getLinha().equals("RECIBO DO PAGADOR") && (lendo)) {
-				if (linhas.get(i).getLinha().charAt(0)=='T') {
-					achouDescricao = true;
-				}
-				if (achouDescricao) {
-					char letra = linhas.get(i).getLinha().charAt(0);	
-					if (Character.isUpperCase(letra)) {
-						inicio++;
-					}
-				} else {
-					inicio++;
-				}
-			}
-		}
 		List<Despesas> listaDepesas = new ArrayList<Despesas>();
-		for (int i=(posicao+1);i<=((posicao+(inicio/2)));i++) {
-			Despesas despesa = new Despesas();
-			despesa.setDescricao(linhas.get(i+(inicio/2)).getLinha());
-			String valor = linhas.get(i).getLinha();
-			valor = valor.replace(".", "");
-			valor = valor.replace(",", ".");
-			try {
-				despesa.setValor(Float.parseFloat(valor));
-			} catch (Exception e) {
-				System.out.println(valor);
-				despesa.setValor(0.0f);
-			}
-			listaDepesas.add(despesa);
-		}
-		resumo.setListaDespesas(listaDepesas);
 		for (int i=0;i<linhas.size();i++) {
-			if (linhas.get(i).getLinha().equalsIgnoreCase("Uso do Banco (=) Valor do Documento")) {
-				String valor = linhas.get(i+2).getLinha();
+			if ((linhas.get(i).getLinha().contains("DEMONSTRATIVO DO RATEIO")) && (!lendo)){
+				lendo = true;
+				i++;
+			} else if (lendo)  {
+				Despesas despesa = new Despesas();
+				String valor = getValor(linhas.get(i).getLinha());
+				String desc = linhas.get(i).getLinha().substring(0, linhas.get(i).getLinha().length()-valor.length());
 				valor = valor.replace(".", "");
 				valor = valor.replace(",", ".");
-				resumo.setValor(Float.parseFloat(valor));
-				i = linhas.size() +100;
-			} 
+				valor = valor.replace("", "");
+				despesa.setDescricao(desc);
+				if (!valor.isEmpty()) {
+					String novovalor =valor;
+					valor= "";
+					for(int c=novovalor.length()-1;c>=0;c--) {
+					
+						if ((novovalor.charAt(c)=='0') 
+						    || (novovalor.charAt(c)=='1')	
+						    || (novovalor.charAt(c)=='2')
+						    || (novovalor.charAt(c)=='3')
+						    || (novovalor.charAt(c)=='4')
+						    || (novovalor.charAt(c)=='5')
+						    || (novovalor.charAt(c)=='6')
+						    || (novovalor.charAt(c)=='7')
+						    || (novovalor.charAt(c)=='8')
+						    || (novovalor.charAt(c)=='9')
+						    || (novovalor.charAt(c)=='.')	
+								) {
+							valor = novovalor.charAt(c) + valor;
+						} 
+					}
+					if (!valor.isEmpty()) {
+						despesa.setValor(Float.parseFloat(valor));
+						listaDepesas.add(despesa);
+					}
+				}
+				if (linhas.size()>(i+1)) {
+					if ((linhas.get(i+1).getLinha().contains("Total"))){
+						i = linhas.size() + 100;
+					} 
+				}
+				
+			}
+			
 		}
+		
+		resumo.setListaDespesas(listaDepesas);
 		listaResumo.add(resumo);
+	}
+	
+	public String getDescricao(String linha) {
+		String novo = "";
+		int contador=0;
+		boolean branco=true;
+		for (int i=linha.length();i>0;i--) {
+			if (linha.charAt(i-1)==' ') {
+				contador++;
+				if (!branco) {
+					return linha.substring(0, linha.length()-contador);
+				}
+			} else {
+				contador++;
+				branco=false;
+			}
+		}
+		return " ";
+	}
+	
+	public String getValor(String linha) {
+		String novo = "";
+		boolean achou = false;
+		for (int i=linha.length();i>0;i--) {
+			if (!achou) {
+				if (linha.charAt(i-1)!=' ') {
+					achou = true;
+				} else {
+					if (achou) {
+						i = -1;
+					}
+				}
+				novo = linha.charAt(i-1) + novo;
+			} else {
+				if (linha.charAt(i-1)!=' ') {
+					novo = linha.charAt(i-1) + novo;
+				}else {
+					i = -1;
+				}
+			}
+			
+		}
+		return novo;
 	}
 	
 	
@@ -117,61 +159,22 @@ public class ModeloGrupoEmbracon {
 	public void lerLinhaDigitavel(List<Linhas> linhas) {
 		String codigobarras = "";
 		for (int i=0;i<linhas.size();i++) {
-			if (linhas.get(i).getLinha().equalsIgnoreCase("RECIBO DO PAGADOR")) {
-				if (linhas.get(i+1).getLinha().contains("Após o vencimento")) {
-					if (linhas.get(i+2).getLinha().contains("BRADESCO")) {
-						codigobarras = linhas.get(i+3).getLinha();
-						i = linhas.size() + 100;
-					}else {
-						codigobarras = linhas.get(i+2).getLinha();
-						i = linhas.size() + 100;
-					}
-					
-				} else if (linhas.get(i+1).getLinha().contains("BRADESCO")) {
-					codigobarras = linhas.get(i+2).getLinha();
-					i = linhas.size() + 100;
-				}else if (linhas.get(i+1).getLinha().contains("Caixa")) {
-					codigobarras = linhas.get(i+2).getLinha();
-					i = linhas.size() + 100;
-				}else if (linhas.get(i+1).getLinha().contains("NO BANCO DO BRASIL")) {
-					codigobarras = linhas.get(i+2).getLinha();
-					i = linhas.size() + 100;
-				}else if (linhas.get(i+1).getLinha().contains("Itaú")) {
-					codigobarras = linhas.get(i+3).getLinha();
-					i = linhas.size() + 100;
-				}else if (linhas.get(i+1).getLinha().contains("Apos o venc. ")) {
-					codigobarras = linhas.get(i+2).getLinha();
-					i = linhas.size() + 100;
-				}else if (linhas.get(i+1).getLinha().contains("Bradesco")) {
-					codigobarras = linhas.get(i+2).getLinha();
-					i = linhas.size() + 100;
-				}else {
-					codigobarras = linhas.get(i+1).getLinha();
-					i = linhas.size() + 100;
-				}
-				
-			}else {
-				if (linhas.size()>(i+1)) {
-					if (linhas.get(i+1).getLinha().contains("Após vencimento")) {
-					codigobarras = linhas.get(i+1).getLinha();
-					i = linhas.size() + 100;
-				} 
-				}
+			if (linhas.get(i).getLinha().equalsIgnoreCase("Autenticação Mecânica")) {
+				codigobarras = linhas.get(i-1).getLinha();
+				i = linhas.size() + 100;
 			}
 		}
 		codigobarras = codigobarras.replace(".", "");
 		codigobarras = codigobarras.replace(" ", "");
+		codigobarras = codigobarras.replace("-", "");
 		setLinhaDigitavel(codigobarras);
 	}
 	
 	public void lerEndereco(List<Linhas> linhas) {
 		String endereco = "";
 		for (int i = 0; i < linhas.size(); i++) {
-			if (linhas.get(i).getLinha().equalsIgnoreCase("Valor Cobrado")) {
-				endereco = linhas.get(i+6).getLinha();
-				i = linhas.size() + 100;
-			}else if (linhas.get(i).getLinha().equalsIgnoreCase("(=) Valor Cobrado")) {
-				endereco = linhas.get(i+6).getLinha();
+			if (linhas.get(i).getLinha().equalsIgnoreCase("Pagador")) {
+				endereco = linhas.get(i-2).getLinha();
 				i = linhas.size() + 100;
 			} 
 		}
@@ -204,8 +207,6 @@ public class ModeloGrupoEmbracon {
 
 	}
 	
-	
-
 	public List<Resumo> getListaResumo() {
 		return listaResumo;
 	}
@@ -245,6 +246,7 @@ public class ModeloGrupoEmbracon {
 	public void setEndereco(String endereco) {
 		Endereco = endereco;
 	}
-	
 
 }
+
+

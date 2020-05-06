@@ -1,39 +1,38 @@
 package br.com.brognoli.bean;
 
-import br.com.brognoli.model.Cobranca;
 import br.com.brognoli.model.Modelos;
 
 public class RegraCondominio {
 	
-	public Modelos retornaModelo(Modelos modelo, Cobranca cobranca) {
+	public Modelos retornaModelo(Modelos modelo, String condominio) {
 		if (modelo.getAdministradora().equalsIgnoreCase("Villa Real Serviços Contábeis")) {
-			if (cobranca.getCondominio().equalsIgnoreCase("Áurea")) {
+			if (condominio.equalsIgnoreCase("Áurea")) {
 				modelo.setModelo("ModeloResumoRateioUmaColuna");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("San Marino")) {
+			} else if (condominio.equalsIgnoreCase("San Marino")) {
 				modelo.setModelo("ModeloResumoRateioUmaColuna");
 			}
 		}
 		
 		if (modelo.getAdministradora().equalsIgnoreCase("Liderança Administradora de Condomínios")) {
-			if (cobranca.getCondominio().equalsIgnoreCase("ALPHACENTAURI")) {
+			if (condominio.equalsIgnoreCase("ALPHACENTAURI")) {
 				modelo.setModelo("ModeloLideranca");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("ANA MATILDE")) {
+			} else if (condominio.equalsIgnoreCase("ANA MATILDE")) {
 				modelo.setModelo("ModeloLideranca");
-			}else if (cobranca.getCondominio().equalsIgnoreCase("")) {
+			}else if (condominio.equalsIgnoreCase("")) {
 				modelo.setModelo("ModeloLideranca");
-			}else if (cobranca.getCondominio().equalsIgnoreCase("FLAMBOYANT")) {
+			}else if (condominio.equalsIgnoreCase("FLAMBOYANT")) {
 				modelo.setModelo("ModeloLideranca");
-			}else if (cobranca.getCondominio().equalsIgnoreCase("DI BERNARDI TOWER")) {
+			}else if (condominio.equalsIgnoreCase("DI BERNARDI TOWER")) {
 				modelo.setModelo("ModeloLideranca");
-			}else if (cobranca.getCondominio().equalsIgnoreCase("DONA MARTA")) {
+			}else if (condominio.equalsIgnoreCase("DONA MARTA")) {
 				modelo.setModelo("ModeloLideranca");
-			}else if (cobranca.getCondominio().equalsIgnoreCase("CARRERA")) {
+			}else if (condominio.equalsIgnoreCase("CARRERA")) {
 				modelo.setModelo("ModeloLideranca");
-			}else if (cobranca.getCondominio().equalsIgnoreCase("CARRERA")) {
+			}else if (condominio.equalsIgnoreCase("CARRERA")) {
 				modelo.setModelo("ModeloLideranca");
 			} else {
-				if ((!cobranca.getCondominio().equalsIgnoreCase("PATIO DAS FLORES"))
-					&& (!cobranca.getCondominio().equalsIgnoreCase("D/ART HOME DESIGN"))
+				if ((!condominio.equalsIgnoreCase("PATIO DAS FLORES"))
+					&& (!condominio.equalsIgnoreCase("D/ART HOME DESIGN"))
 						){
 					modelo.setModelo("ModeloLideranca");
 				}
@@ -41,82 +40,87 @@ public class RegraCondominio {
 			}
 		}
 		if (modelo.getAdministradora().equalsIgnoreCase("Grupo Embracon")) {
-			if (cobranca.getCondominio().equalsIgnoreCase("CONJUNTO MARIA ZITA")) {
+			if (condominio.equalsIgnoreCase("CONJUNTO MARIA ZITA")) {
 				modelo.setModelo("ModeloGrupoEmbraconAposVencimento");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("ALBATROZ")) {
+			} else if (condominio.equalsIgnoreCase("ALBATROZ")) {
 				modelo.setModelo("ModeloGrupoEmbraconAposVencimento");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("MONT REAL")) {
+			} else if (condominio.equalsIgnoreCase("MONT REAL")) {
 				modelo.setModelo("ModeloGrupoEmbraconCodigoBarras");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("ILHA DE ITAPARICA")) {
+			} else if (condominio.equalsIgnoreCase("ILHA DE ITAPARICA")) {
 				modelo.setModelo("ModeloGrupoEmbraconCodigoBarras");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("NAIR HEIDERSCHEIDT")) {
+			} else if (condominio.equalsIgnoreCase("NAIR HEIDERSCHEIDT")) {
 				modelo.setModelo("ModeloGrupoEmbraconCodigoBarras");
-			}  else if (cobranca.getCondominio().equalsIgnoreCase("ÁGUAS DO BALNEÁRIO")) {
+			}  else if (condominio.equalsIgnoreCase("ÁGUAS DO BALNEÁRIO")) {
 				modelo.setModelo("ModeloGrupoEmbraconAposVencimento");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("BOULEVARD DU NORD")) {
+			} else if (condominio.equalsIgnoreCase("BOULEVARD DU NORD")) {
 				modelo.setModelo("ModeloGrupoEmbraconAposVencimento");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("HARMONY")) {
+			} else if (condominio.equalsIgnoreCase("HARMONY")) {
 				modelo.setModelo("ModeloGrupoEmbraconAposVencimento");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("KALAMARI RESIDENCE")) {
+			} else if (condominio.equalsIgnoreCase("KALAMARI RESIDENCE")) {
 				modelo.setModelo("ModeloGrupoEmbraconAposVencimento");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("RECANTO DO HORIZONTE")) {
+			} else if (condominio.equalsIgnoreCase("RECANTO DO HORIZONTE")) {
 				modelo.setModelo("ModeloGrupoEmbraconCodigoBarras");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("MALBEC")) {
+			} else if (condominio.equalsIgnoreCase("MALBEC")) {
 				modelo.setModelo("ModeloGrupoEmbraconMalbec");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("PORTO REAL")) {
+			} else if (condominio.equalsIgnoreCase("PORTO REAL")) {
 				modelo.setModelo("ModeloGrupoEmbraconCodigoBarras");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("STELLA MARIS")) {
+			} else if (condominio.equalsIgnoreCase("STELLA MARIS")) {
 				modelo.setModelo("ModeloGrupoEmbraconCodigoBarras");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("VILLA MILANO")) {
+			} else if (condominio.equalsIgnoreCase("VILLA MILANO")) {
 				modelo.setModelo("ModeloGrupoEmbraconCodigoBarras");
-			}  else if (cobranca.getCondominio().equalsIgnoreCase("VILLENEUVE RESIDENCE")) {
+			}  else if (condominio.equalsIgnoreCase("VILLENEUVE RESIDENCE")) {
 				modelo.setModelo("ModeloGrupoEmbraconAposVencimento");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("MARINA PARK")) {
+			} else if (condominio.equalsIgnoreCase("MARINA PARK")) {
 				modelo.setModelo("ModeloGrupoEmbraconCodigoBarras");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("PARQUE ILHA DO ARVOREDO")) {
+			} else if (condominio.equalsIgnoreCase("PARQUE ILHA DO ARVOREDO")) {
 				modelo.setModelo("ModeloGrupoEmbraconCodigoBarras");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("Miguel Daux")) {
+			} else if (condominio.equalsIgnoreCase("Miguel Daux")) {
 				modelo.setModelo("ModeloGrupoEmbraconAposVencimento");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("MORADAS DO GARAPUVU")) {
+			} else if (condominio.equalsIgnoreCase("MORADAS DO GARAPUVU")) {
 				modelo.setModelo("ModeloGrupoEmbraconCodigoBarras");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("AÇORES")) {
+			} else if (condominio.equalsIgnoreCase("AÇORES")) {
 				modelo.setModelo("Resumo Grupo Embracon");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("AMÉRICA OFFICENTER")) {
+			} else if (condominio.equalsIgnoreCase("AMÉRICA OFFICENTER")) {
 				modelo.setModelo("Resumo Grupo Embracon");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("CHARDONNAY")) {
+			} else if (condominio.equalsIgnoreCase("CHARDONNAY")) {
 				modelo.setModelo("Resumo Grupo Embracon");
-			}else if (cobranca.getCondominio().equalsIgnoreCase("CITY OFFICE SQUARE")) {
+			}else if (condominio.equalsIgnoreCase("CITY OFFICE SQUARE")) {
 				modelo.setModelo("Resumo Grupo Embracon");
-			}else if (cobranca.getCondominio().equalsIgnoreCase("COMERCIAL MADISON CENTER")) {
+			}else if (condominio.equalsIgnoreCase("COMERCIAL MADISON CENTER")) {
 				modelo.setModelo("Resumo Grupo Embracon");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("EPIROS PARK")) {
+			} else if (condominio.equalsIgnoreCase("EPIROS PARK")) {
 				modelo.setModelo("Resumo Grupo Embracon");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("FLAMBOYANT")) {
+			} else if (condominio.equalsIgnoreCase("FLAMBOYANT")) {
 				modelo.setModelo("Resumo Grupo Embracon");
-			}else if (cobranca.getCondominio().equalsIgnoreCase("GAIVOTA")) {
+			}else if (condominio.equalsIgnoreCase("GAIVOTA")) {
 				modelo.setModelo("Resumo Grupo Embracon");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("ILHA DE ITAPARICA")) {
+			} else if (condominio.equalsIgnoreCase("ILHA DE ITAPARICA")) {
 				modelo.setModelo("ModeloGrupoEmbraconCodigoBarras");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("ILHA DO CORAL HOTEL RESIDENCE")) {
+			} else if (condominio.equalsIgnoreCase("ILHA DO CORAL HOTEL RESIDENCE")) {
 				modelo.setModelo("Resumo Grupo Embracon");
-			}else if (cobranca.getCondominio().equalsIgnoreCase("ILHA DOURADA")) {
+			}else if (condominio.equalsIgnoreCase("ILHA DOURADA")) {
 				modelo.setModelo("Resumo Grupo Embracon");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("ISABELLA")) {
+			} else if (condominio.equalsIgnoreCase("ISABELLA")) {
 				modelo.setModelo("Resumo Grupo Embracon");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("KALAMARI RESIDENCE")) {
+			} else if (condominio.equalsIgnoreCase("KALAMARI RESIDENCE")) {
 				modelo.setModelo("Resumo Grupo Embracon");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("MAISON MARIA OLIVIA")) {
+			} else if (condominio.equalsIgnoreCase("MAISON MARIA OLIVIA")) {
 				modelo.setModelo("Resumo Grupo Embracon");
-			}else if (cobranca.getCondominio().equalsIgnoreCase("REAL TRINDADE")) {
+			}else if (condominio.equalsIgnoreCase("REAL TRINDADE")) {
 				modelo.setModelo("ModeloGrupoEmbraconCodigoBarras");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("DONA DÉLCIA")) {
+			} else if (condominio.equalsIgnoreCase("DONA DÉLCIA")) {
 				modelo.setModelo("ModeloGrupoEmbraconCodigoBarras");
-			} else if (cobranca.getCondominio().equalsIgnoreCase("PRIVILEGE")) {
+			} else if (condominio.equalsIgnoreCase("PRIVILEGE")) {
 				modelo.setModelo("ModeloGrupoEmbraconAposVencimento");
-			}else if (cobranca.getCondominio().equalsIgnoreCase("RECANTO DOS IMIGRANTES")) {
+			}else if (condominio.equalsIgnoreCase("RECANTO DOS IMIGRANTES")) {
 				modelo.setModelo("Resumo Grupo Embracon");
 			}
 			
+		}
+		if (modelo.getAdministradora().equalsIgnoreCase("DUPLIQUE FLORIANOPOLIS")) {
+			if (condominio.equalsIgnoreCase("BAIRRO DE FÁTIMA")) {
+				modelo.setModelo("Resumo Duplic2");
+			}
 		}
 		return modelo;
 	}

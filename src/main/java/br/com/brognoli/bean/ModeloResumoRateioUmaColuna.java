@@ -16,6 +16,7 @@ import com.itextpdf.text.pdf.parser.TextExtractionStrategy;
 import br.com.brognoli.model.Despesas;
 import br.com.brognoli.model.Linhas;
 import br.com.brognoli.model.Resumo;
+import javassist.runtime.Desc;
 
 public class ModeloResumoRateioUmaColuna {
 	private List<Resumo> listaResumo;
@@ -83,7 +84,8 @@ public class ModeloResumoRateioUmaColuna {
 					&& (!resumo.getDescicao().contains("Água")) && (!resumo.getDescicao().contains("água")) && (!resumo.getDescicao().contains("ÁGUA"))
 					&&  (!resumo.getDescicao().contains("Chiller")) && (!resumo.getDescicao().contains("Fundo de")) && (!resumo.getDescicao().contains("Óleo D")) 
 					&& (!resumo.getDescicao().contains("Consumo de GLP"))
-					&& (!resumo.getDescicao().contains("Diesel")) && (resumo.getDescicao().length() > 0)) {
+					&& (!resumo.getDescicao().contains("Diesel")) 
+					&& (resumo.getDescicao().length() > 0)) {
 				listaDepesas =listarDespesas(linhas, despesas);
 			}
 			if (listaDepesas.size()==0) {
@@ -187,6 +189,9 @@ public class ModeloResumoRateioUmaColuna {
 				}
 				if (descricao.equalsIgnoreCase("Total geral:")) {
 					descricao ="Total:";
+				}
+				if (descricao.contains("Total")) {
+					descricao = "Total:";
 				}
 			}
 			if ((descricao.equalsIgnoreCase("Total:")) || (descricao.equalsIgnoreCase("Total geral:"))) {

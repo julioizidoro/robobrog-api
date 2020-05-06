@@ -8,6 +8,9 @@ public class Boletos {
 	private String Endereco;
 	private String numero;
 	private String linhaDigitavel;
+	private Imoveladm imovelAdm;
+	private String competencia;
+	private String datavencimento;
 		
 	private List<Resumo> listaResumo;
 	
@@ -40,6 +43,24 @@ public class Boletos {
 	}
 	public void setLinhaDigitavel(String linhaDigitavel) {
 		this.linhaDigitavel = linhaDigitavel;
+	}
+	public Imoveladm getImovelAdm() {
+		return imovelAdm;
+	}
+	public void setImovelAdm(Imoveladm imovelAdm) {
+		this.imovelAdm = imovelAdm;
+	}
+	public String getCompetencia() {
+		return competencia;
+	}
+	public void setCompetencia(String competencia) {
+		this.competencia = competencia;
+	}
+	public String getDatavencimento() {
+		return datavencimento;
+	}
+	public void setDatavencimento(String datavencimento) {
+		this.datavencimento = datavencimento;
 	}
 	
 	

@@ -18,7 +18,8 @@ import br.com.brognoli.model.Despesas;
 import br.com.brognoli.model.Linhas;
 import br.com.brognoli.model.Resumo;
 
-public class ModeloGrupoEmbracon {
+public class ModeloFeltrin {
+	
 	private List<Resumo> listaResumo;
 	private int linhaResumo;
 	private String Endereco;
@@ -51,7 +52,7 @@ public class ModeloGrupoEmbracon {
         lerResumo(linhas);
         lerLinhaDigitavel(linhas);
         lerEndereco(linhas);
-        return listaResumo;
+       return listaResumo;
 	}
 	
 	public void lerResumo(List<Linhas> linhas) {
@@ -62,54 +63,49 @@ public class ModeloGrupoEmbracon {
 		int inicio=0;
 		int posicao =0;
 		boolean achouDescricao = false;
-		for (int i=0;i<linhas.size();i++) {
-			if (linhas.get(i).getLinha().contains(campo) && (!lendo)) {
-				lendo = true;
-				i = i+1;
-				posicao = i;
-			} else if (linhas.get(i).getLinha().contains("RECIBO DO PAGADOR") && (lendo)) {
-				lendo = false;
-				i = linhas.size()+100;
-			}else if (!linhas.get(i).getLinha().equals("RECIBO DO PAGADOR") && (lendo)) {
-				if (linhas.get(i).getLinha().charAt(0)=='T') {
-					achouDescricao = true;
-				}
-				if (achouDescricao) {
-					char letra = linhas.get(i).getLinha().charAt(0);	
-					if (Character.isUpperCase(letra)) {
-						inicio++;
-					}
-				} else {
-					inicio++;
-				}
-			}
-		}
 		List<Despesas> listaDepesas = new ArrayList<Despesas>();
-		for (int i=(posicao+1);i<=((posicao+(inicio/2)));i++) {
-			Despesas despesa = new Despesas();
-			despesa.setDescricao(linhas.get(i+(inicio/2)).getLinha());
-			String valor = linhas.get(i).getLinha();
-			valor = valor.replace(".", "");
-			valor = valor.replace(",", ".");
-			try {
-				despesa.setValor(Float.parseFloat(valor));
-			} catch (Exception e) {
-				System.out.println(valor);
-				despesa.setValor(0.0f);
-			}
-			listaDepesas.add(despesa);
-		}
-		resumo.setListaDespesas(listaDepesas);
 		for (int i=0;i<linhas.size();i++) {
-			if (linhas.get(i).getLinha().equalsIgnoreCase("Uso do Banco (=) Valor do Documento")) {
-				String valor = linhas.get(i+2).getLinha();
+			try {
+			if (linhas.get(i).getLinha().contains("Composição da cobrança") && (!lendo)) {
+				lendo = true;
+			} else if ((lendo) && (!linhas.get(i).getLinha().contains("Detalhe:"))) {
+				Despesas despesa = new Despesas();
+				String valor = linhas.get(i).getLinha().substring((linhas.get(i).getLinha().length()-6), linhas.get(i).getLinha().length());
 				valor = valor.replace(".", "");
 				valor = valor.replace(",", ".");
-				resumo.setValor(Float.parseFloat(valor));
-				i = linhas.size() +100;
-			} 
+				valor = valor.replace(" ", "");
+				String desc = linhas.get(i).getLinha().substring(0, 58);
+				despesa.setDescricao(desc);
+				if (!valor.isEmpty()) {
+					despesa.setValor(Float.parseFloat(valor));
+					listaDepesas.add(despesa);
+				}
+				if (linhas.size()>(i+1)) {
+					if (linhas.get(i+1).getLinha().equalsIgnoreCase("____________________________________________________________________")) {
+						i = linhas.size() + 100;
+					} 
+			}
+			
+			}
+		}catch (Exception e) {
+			// TODO: handle exception
 		}
+		}
+		
+		resumo.setListaDespesas(listaDepesas);
 		listaResumo.add(resumo);
+	}
+	
+	public String getValor(String linha) {
+		String novo = "";
+		for (int i=linha.length();i>0;i--) {
+			if (linha.charAt(i-1)!='.') {
+				novo = linha.charAt(i-1) + novo;
+			} else {
+				i = -1;
+			}
+		}
+		return novo;
 	}
 	
 	
@@ -117,48 +113,14 @@ public class ModeloGrupoEmbracon {
 	public void lerLinhaDigitavel(List<Linhas> linhas) {
 		String codigobarras = "";
 		for (int i=0;i<linhas.size();i++) {
-			if (linhas.get(i).getLinha().equalsIgnoreCase("RECIBO DO PAGADOR")) {
-				if (linhas.get(i+1).getLinha().contains("Após o vencimento")) {
-					if (linhas.get(i+2).getLinha().contains("BRADESCO")) {
-						codigobarras = linhas.get(i+3).getLinha();
-						i = linhas.size() + 100;
-					}else {
-						codigobarras = linhas.get(i+2).getLinha();
-						i = linhas.size() + 100;
-					}
-					
-				} else if (linhas.get(i+1).getLinha().contains("BRADESCO")) {
-					codigobarras = linhas.get(i+2).getLinha();
-					i = linhas.size() + 100;
-				}else if (linhas.get(i+1).getLinha().contains("Caixa")) {
-					codigobarras = linhas.get(i+2).getLinha();
-					i = linhas.size() + 100;
-				}else if (linhas.get(i+1).getLinha().contains("NO BANCO DO BRASIL")) {
-					codigobarras = linhas.get(i+2).getLinha();
-					i = linhas.size() + 100;
-				}else if (linhas.get(i+1).getLinha().contains("Itaú")) {
-					codigobarras = linhas.get(i+3).getLinha();
-					i = linhas.size() + 100;
-				}else if (linhas.get(i+1).getLinha().contains("Apos o venc. ")) {
-					codigobarras = linhas.get(i+2).getLinha();
-					i = linhas.size() + 100;
-				}else if (linhas.get(i+1).getLinha().contains("Bradesco")) {
-					codigobarras = linhas.get(i+2).getLinha();
-					i = linhas.size() + 100;
-				}else {
-					codigobarras = linhas.get(i+1).getLinha();
-					i = linhas.size() + 100;
-				}
-				
-			}else {
-				if (linhas.size()>(i+1)) {
-					if (linhas.get(i+1).getLinha().contains("Após vencimento")) {
-					codigobarras = linhas.get(i+1).getLinha();
-					i = linhas.size() + 100;
-				} 
-				}
+			if (linhas.get(i).getLinha().contains("Pagável preferencialmente")) {
+				codigobarras = linhas.get(i-1).getLinha();
+				i = linhas.size() + 100;
 			}
 		}
+		codigobarras = codigobarras.replace("237-2", "");
+		codigobarras = codigobarras.replace("756-0", "");
+		codigobarras = codigobarras.replace("104-0", "");
 		codigobarras = codigobarras.replace(".", "");
 		codigobarras = codigobarras.replace(" ", "");
 		setLinhaDigitavel(codigobarras);
@@ -167,11 +129,8 @@ public class ModeloGrupoEmbracon {
 	public void lerEndereco(List<Linhas> linhas) {
 		String endereco = "";
 		for (int i = 0; i < linhas.size(); i++) {
-			if (linhas.get(i).getLinha().equalsIgnoreCase("Valor Cobrado")) {
-				endereco = linhas.get(i+6).getLinha();
-				i = linhas.size() + 100;
-			}else if (linhas.get(i).getLinha().equalsIgnoreCase("(=) Valor Cobrado")) {
-				endereco = linhas.get(i+6).getLinha();
+			if (linhas.get(i).getLinha().equalsIgnoreCase("Recibo do Pagador")) {
+				endereco = linhas.get(i+2).getLinha();
 				i = linhas.size() + 100;
 			} 
 		}
@@ -191,11 +150,7 @@ public class ModeloGrupoEmbracon {
 				if (endereco.charAt(i)!=' ') {
 					numero = numero + endereco.charAt(i);
 				}else {
-					if  (!numero.equalsIgnoreCase("Nº")){
-						i = linhas.size() + 100;
-					} else {
-						numero = numero + endereco.charAt(i);
-					}
+					i = linhas.size() + 100;
 				}
 			}
 		}
@@ -204,8 +159,6 @@ public class ModeloGrupoEmbracon {
 
 	}
 	
-	
-
 	public List<Resumo> getListaResumo() {
 		return listaResumo;
 	}
@@ -245,6 +198,5 @@ public class ModeloGrupoEmbracon {
 	public void setEndereco(String endereco) {
 		Endereco = endereco;
 	}
-	
 
 }

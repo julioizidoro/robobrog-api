@@ -85,7 +85,8 @@ public class ModeloResumoRateio {
 					&& (!resumo.getDescicao().contains("Água")) && (!resumo.getDescicao().contains("água")) && (!resumo.getDescicao().contains("ÁGUA"))
 					&&  (!resumo.getDescicao().contains("Chiller")) && (!resumo.getDescicao().contains("Fundo de")) && (!resumo.getDescicao().contains("Óleo D")) 
 					&& (!resumo.getDescicao().contains("Consumo de GLP"))
-					&& (!resumo.getDescicao().contains("Diesel")) && (resumo.getDescicao().length() > 0)) {
+					&& (!resumo.getDescicao().contains("Diesel")) 
+					&& (!resumo.getDescicao().contains("Energia elétrica")) && (resumo.getDescicao().length() > 0)) {
 				listaDepesas =listarDespesas(linhas, despesas);
 			}
 			if (listaDepesas.size()==0) {

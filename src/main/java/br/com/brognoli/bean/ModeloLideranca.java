@@ -58,6 +58,7 @@ public class ModeloLideranca {
 	}
 	
 	public void lerResumo(List<Linhas> linhas) {
+	try {
 		String campo = "DEMONSTRATIVO DO RATEIO";
 		boolean lendo = false;
 		Resumo resumo = new Resumo();
@@ -287,6 +288,7 @@ public class ModeloLideranca {
 		String novovalor =valor;
 		valor= "";
 		for(int c=0;c<novovalor.length();c++) {
+		
 			if ((novovalor.charAt(c)=='0') 
 			    || (novovalor.charAt(c)=='1')	
 			    || (novovalor.charAt(c)=='2')
@@ -304,6 +306,9 @@ public class ModeloLideranca {
 		}
 		resumo.setValor(Float.parseFloat(valor));
 		listaResumo.add(resumo);
+	}catch (Exception e) {
+		// TODO: handle exception
+	}
 	}
 	
 	

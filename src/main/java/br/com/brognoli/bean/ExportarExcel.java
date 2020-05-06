@@ -155,26 +155,115 @@ public class ExportarExcel {
 
 	}
 
-	public Float calcularValorTotal(List<Resumo> listaResumo) {
-		Float valor = 0.0f;
-		if (listaResumo == null) {
-			return valor;
-		}
-		for (int i = 0; i < listaResumo.size(); i++) {
-			if (listaResumo.get(i).getListaDespesas() == null) {
-				valor = valor + 0;
-			} else
-				for (int d = 0; d < listaResumo.get(i).getListaDespesas().size(); d++) {
-					try {
-						valor = valor + listaResumo.get(i).getListaDespesas().get(d).getValor();
-					} catch (Exception e) {
-						System.out.println(i + " - " + d);
+	
+	
+	public void gerarGT(List<Boletos> listaBoletos) {
+		
+		
+			
+			HSSFWorkbook workbook = new HSSFWorkbook();
+			HSSFSheet firstSheet = workbook.createSheet("Eventos Valores");
+			FileOutputStream fos = null;
+
+			try {
+				file = new File("GarantiaTotal.xls");
+				fos = new FileOutputStream(file);
+				int i = 0;
+				HSSFRow row = firstSheet.createRow(i);
+				row.createCell(0).setCellValue("Imovel");
+				row.createCell(1).setCellValue("Administradora");
+				row.createCell(2).setCellValue("Vencimento");
+				row.createCell(3).setCellValue("Linha Digitavel");
+				row.createCell(4).setCellValue("Codigo Barras");
+				row.createCell(5).setCellValue("Total");
+				row.createCell(6).setCellValue("Desconto");
+				int l = 7;
+				int maior = 0;
+				for (Boletos c : listaBoletos) {
+					int item = 0;
+					if (c.getListaResumo() != null) {
+						for (Resumo r : c.getListaResumo()) {
+							if (r.getListaDespesas() != null) {
+								if (maior < r.getListaDespesas().size()) {
+									maior = r.getListaDespesas().size();
+								}
+							}
+						}
+					}
+
+				}
+
+				for (int n = 0; n <= maior; n++) {
+					if (l <= n) {
+						row.createCell(l).setCellValue("Item" + String.valueOf(n));
+						l++;
+						row.createCell(l).setCellValue("Valor Item" + String.valueOf(n));
+						l++;
 					}
 				}
-		}
-		return valor;
 
-	}
+				i++;
+
+				for (Boletos c : listaBoletos) {
+					row = firstSheet.createRow(i);
+					row.createCell(0).setCellValue(c.getImovelAdm().getImovel());
+					row.createCell(1).setCellValue(c.getImovelAdm().getAdmwinker());
+					row.createCell(2).setCellValue(c.getDatavencimento());
+					row.createCell(3).setCellValue(c.getLinhaDigitavel());
+					row.createCell(4).setCellValue("");
+					row.createCell(5).setCellValue(calcularValorTotal(c.getListaResumo()));
+					row.createCell(6).setCellValue("0,00");
+					l = 7;
+					if (c.getListaResumo() != null) {
+						for (Resumo r : c.getListaResumo()) {
+							if (r.getListaDespesas() != null) {
+								for (int n = 0; n < r.getListaDespesas().size(); n++) {
+									row.createCell(l).setCellValue(r.getListaDespesas().get(n).getDescricao());
+									l++;
+									row.createCell(l).setCellValue(r.getListaDespesas().get(n).getValor());
+									l++;
+								}
+							}
+						}
+					}
+					i++;
+				}
+
+				workbook.write(fos);
+
+			} catch (Exception e) {
+				System.out.println(e);
+			}
+
+			try {
+				fos.flush();
+				fos.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		}
+
+		public Float calcularValorTotal(List<Resumo> listaResumo) {
+			Float valor = 0.0f;
+			if (listaResumo == null) {
+				return valor;
+			}
+			for (int i = 0; i < listaResumo.size(); i++) {
+				if (listaResumo.get(i).getListaDespesas() == null) {
+					valor = valor + 0;
+				} else
+					for (int d = 0; d < listaResumo.get(i).getListaDespesas().size(); d++) {
+						try {
+							valor = valor + listaResumo.get(i).getListaDespesas().get(d).getValor();
+						} catch (Exception e) {
+							System.out.println(i + " - " + d);
+						}
+					}
+			}
+			return valor;
+
+		}
 
 	public String ConvercaoData(Date data) {
 		DateFormat df = new SimpleDateFormat("dd/MM/yyyy");

@@ -12,6 +12,7 @@
 	<groupId>br.com.brognoli</groupId>
 	<artifactId>robobrog-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+	<packaging>war</packaging>
 	<name>robobrog-api</name>
 	<description>Projeto do novo robo Brognoli</description>
 

@@ -75,6 +75,7 @@ public class ModeloAdelante {
 		}
 		List<Despesas> listaDepesas = new ArrayList<Despesas>();
 		for (int i=(posicao+1);i<=((posicao+(inicio/2)));i++) {
+		try {
 			Despesas despesa = new Despesas();
 			despesa.setDescricao(linhas.get(i).getLinha());
 			String valor = linhas.get(i+(inicio/2)).getLinha();
@@ -82,9 +83,13 @@ public class ModeloAdelante {
 			valor = valor.replace(",", ".");
 			despesa.setValor(Float.parseFloat(valor));
 			listaDepesas.add(despesa);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
 		}
 		resumo.setListaDespesas(listaDepesas);
 		for (int i=0;i<linhas.size();i++) {
+		  try {
 			if (linhas.get(i).getLinha().equalsIgnoreCase("Nosso número")) {
 				String valor = linhas.get(i+2).getLinha();
 				valor = valor.replace(".", "");
@@ -92,6 +97,9 @@ public class ModeloAdelante {
 				resumo.setValor(Float.parseFloat(valor));
 				i = linhas.size() +100;
 			} 
+		  }catch (Exception e) {
+			// TODO: handle exception
+		}
 		}
 		listaResumo.add(resumo);
 	}
@@ -99,6 +107,7 @@ public class ModeloAdelante {
 	
 	
 	public void lerLinhaDigitavel(List<Linhas> linhas) {
+		try {
 		String b1 = "";
 		String b2 = "";
 		for (int i=0;i<linhas.size();i++) {
@@ -113,6 +122,9 @@ public class ModeloAdelante {
 		codigobarras = codigobarras.replace(".", "");
 		codigobarras = codigobarras.replace(" ", "");
 		setLinhaDigitavel(codigobarras);
+		}catch (Exception e) {
+			// TODO: handle exception
+		}
 	}
 	
 	public void lerEndereco(List<Linhas> linhas) {
