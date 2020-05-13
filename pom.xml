@@ -141,6 +141,22 @@
 			<artifactId>aws-java-sdk-s3</artifactId>
 			<version>1.11.519</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.poi/openxml4j -->
+<dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>3.16</version>
+            <type>jar</type>
+        </dependency>
+		
+        
+		<dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>23.0</version>
+        </dependency>
+   
+
 
 	</dependencies>
 

@@ -104,7 +104,7 @@ public class LerSite {
         options.addArguments("start-maximized");
         options.addArguments("disable-infobars");
         options.addArguments("--disable-extensions");
-        driver = new ChromeDriver(options);
+       driver = new ChromeDriver(options);
         driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
         driver.get("https://e.casan.com.br/segundavia/");
 	}

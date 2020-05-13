@@ -99,7 +99,7 @@ public class CobrancaController {
 	private List<Cobrancaresultado> listaCobrancaResultado;
 	@Autowired
 	private S3Service s3Service;
-	private String caminhoDir= "\\\\arqsrv02\\documentos\\centralfinanceira\\BOLETOS DE CONDOMÍNIOS\\Winker\\";
+	private String caminhoDir= "G:\\BOLETOS DE CONDOMÍNIOS\\Winker\\";
 	
 	@PostMapping("/salvar")
 	@ResponseStatus(HttpStatus.CREATED)
