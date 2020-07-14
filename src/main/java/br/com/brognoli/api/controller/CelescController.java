@@ -80,8 +80,8 @@ public class CelescController {
         }
         WebElement inputLogin = driver.findElement(By.name("login"));
         WebElement inputSenha = driver.findElement(By.name("senha"));
-        inputLogin.sendKeys("IMA88A001");
-        inputSenha.sendKeys("MA88A001");
+        inputLogin.sendKeys("IMA14A001");
+        inputSenha.sendKeys("BRIM2020");
         WebElement botaoEntrar = driver.findElement(By.xpath("//*[@id=\"form0\"]/div[6]/input[1]"));
 		botaoEntrar.click();
         System.out.println(driver.getCurrentUrl());
@@ -268,8 +268,8 @@ public class CelescController {
 			HtmlForm formulario = pagina.getFormByName("LoginForm");
 			HtmlInput inputLogin = formulario.getInputByName("login");
 			HtmlInput inputSenha = formulario.getInputByName("senha");
-			inputLogin.setValueAttribute("IMA88A001");
-			inputSenha.setValueAttribute("MA88A001");
+			inputLogin.setValueAttribute("IMA14A001");
+			inputSenha.setValueAttribute("BRIM2020");
 			HtmlInput inputBotao = formulario.getInputByValue("Entrar");
 			pagina = inputBotao.click();
 			

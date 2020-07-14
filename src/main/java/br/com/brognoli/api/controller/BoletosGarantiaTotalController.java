@@ -669,7 +669,7 @@ public class BoletosGarantiaTotalController {
 
 					}
 				} else if (lines.get(i).getLinha().length() == 71) {
-					if (lines.get(i).getLinha().substring(0, 11).equalsIgnoreCase("BANSICREDI 748-0")) {
+					if (lines.get(i).getLinha().substring(0, 16).equalsIgnoreCase("BANSICREDI 748-0")) {
 						boleto.setLinhaDigitavel(lines.get(i).getLinha().substring(18, lines.get(i).getLinha().length()));
 						boleto.setNomearquivo(nomearquivo);
 						achou = true;
@@ -1322,6 +1322,11 @@ public class BoletosGarantiaTotalController {
 					return r;
 				} 
 			}
+		}else if (padrao==55) {
+			String l = lines.get(3).getLinha();
+			String r = l.substring(1, 19);
+			return r;
+			
 		}else if (padrao==-1) {
 			return "SEM CNPJ";
 		}

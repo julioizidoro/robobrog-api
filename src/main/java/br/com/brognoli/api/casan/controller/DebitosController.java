@@ -3,6 +3,7 @@ package br.com.brognoli.api.casan.controller;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -18,7 +19,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.brognoli.api.casan.bean.LerCasanDocumentos;
 import br.com.brognoli.api.casan.bean.LerSite;
+import br.com.brognoli.api.casan.model.Fatura;
 import br.com.brognoli.api.casan.model.Imovelcasan;
 import br.com.brognoli.api.casan.repository.ImoveisRepository;
 import br.com.brognoli.api.service.S3Service;
@@ -101,6 +104,50 @@ public class DebitosController {
 		}
 		return ResponseEntity.notFound().build();
 		
+	}
+	
+	@GetMapping("/consulta/debitos")
+	@ResponseStatus(HttpStatus.CREATED)
+	public List<Imovelcasan> getDebitos()  {
+		LerSite siteCasan = new LerSite();
+		listaImoveis = siteCasan.getBoletos(listaImoveis); 
+		if (listaImoveis.size()>0) {
+			if (listaImoveis.get(0).getListaFatura()!=null) {
+				if (listaImoveis.get(0).getListaFatura().size()>0) {
+					List<Fatura> novaLita = new ArrayList<Fatura>();
+					for (int i=0;i<listaImoveis.get(0).getListaFatura().size();i++) {
+						Fatura fatura = listaImoveis.get(0).getListaFatura().get(i);
+						try {
+							fatura = siteCasan.lerPDF(fatura);
+							novaLita.add(fatura);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+					listaImoveis.get(0).setListaFatura(novaLita);
+				}
+			}
+		}
+		return listaImoveis;
+	}
+	
+	@GetMapping("/consulta/certidao")
+	@ResponseStatus(HttpStatus.CREATED)
+	public Imovelcasan getCertidao()  {
+		LerCasanDocumentos siteCasan = new LerCasanDocumentos();
+		Imovelcasan imovel = listaImoveis.get(0);
+		imovel = siteCasan.getCertidaoNegativa(imovel);
+		return imovel;
+	}
+	
+	@GetMapping("/consulta/quitacao")
+	@ResponseStatus(HttpStatus.CREATED)
+	public Imovelcasan getQuitacao()  {
+		LerCasanDocumentos siteCasan = new LerCasanDocumentos();
+		Imovelcasan imovel = listaImoveis.get(0);
+		imovel = siteCasan.getQuitacaoAnual(imovel);
+		return imovel;
 	}
 	
 	public void validarSituacaoImovel() {

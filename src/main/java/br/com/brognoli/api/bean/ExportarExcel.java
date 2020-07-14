@@ -12,6 +12,7 @@ import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 
 import br.com.brognoli.api.model.Boletos;
+import br.com.brognoli.api.model.Boletoseguro;
 import br.com.brognoli.api.model.Carne;
 import br.com.brognoli.api.model.CarneIPTU;
 import br.com.brognoli.api.model.Resumo;
@@ -372,6 +373,47 @@ public class ExportarExcel {
 			e.printStackTrace();
 		}
      }
+	
+		public void gerarSeguro(List<Boletoseguro> listaBoletos) {
+		
+		
+		
+		HSSFWorkbook workbook = new HSSFWorkbook();
+		HSSFSheet firstSheet = workbook.createSheet("Eventos Valores");
+		FileOutputStream fos = null;
+
+		try {
+			file = new File("BoletoSeguros.xls");
+			fos = new FileOutputStream(file);
+			int i = 0;
+			HSSFRow row = firstSheet.createRow(i);
+			row.createCell(0).setCellValue("Data Vencimento");
+			row.createCell(1).setCellValue("Valor");
+			row.createCell(2).setCellValue("Linha digitável");
+			
+			for (Boletoseguro c : listaBoletos) {
+				i++;
+				row = firstSheet.createRow(i);
+				row.createCell(0).setCellValue(c.getDatavencimento());
+				row.createCell(1).setCellValue(c.getValor());
+				row.createCell(2).setCellValue(c.getLinhadigitavel());
+			}
+
+			workbook.write(fos);
+
+		} catch (Exception e) {
+			
+			System.out.println(e);
+		}
+
+		try {
+			fos.flush();
+			fos.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
 	
 	
 

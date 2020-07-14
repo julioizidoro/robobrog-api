@@ -46,6 +46,8 @@ public class LerSite {
 	HtmlButton buttonLWebSair;
 	private int linhaGeral = 0;
 	private File file;
+	//String diretorio = "C:\\Logs\\casan\\";
+	String diretorio = "C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\casan\\";
 	
 	
 	
@@ -66,7 +68,7 @@ public class LerSite {
 	    	if (lista.get(i).getSituacao().equalsIgnoreCase("OK")) {
 	    	try {
 	    			if (fechouDriver) {
-	    				inicar();
+	    				inicar("https://e.casan.com.br/segundavia/");
 	    				fechouDriver = false;
 	    				Thread.sleep(1000);
 	    			}
@@ -105,11 +107,15 @@ public class LerSite {
 		return lista;
 	}
 	
+	
+	
+	
+	
 	public void iniciarWebClinet() {
 		
 	}
 	
-	public void inicar() {
+	public void inicar(String site) {
 		Map<String, Object> prefs = new HashMap<String, Object>();
         prefs.put("download.default_directory", System.getProperty("user.dir") + File.separator + "externalFiles" + File.separator + "downloadFiles");
         System.setProperty("webdriver.chrome.driver", "C:/Logs/drive/chromedriver.exe");
@@ -121,7 +127,7 @@ public class LerSite {
         options.addArguments("--disable-extensions");
        driver = new ChromeDriver(options);
         driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-        driver.get("https://e.casan.com.br/segundavia/");
+        driver.get(site);
 	}
 	
 	public boolean logarWebClient(Imovelcasan imovel, int i) throws FailingHttpStatusCodeException, MalformedURLException, IOException {
@@ -183,7 +189,7 @@ public class LerSite {
 	}
 	
 	public void logof() throws IOException {
-		pagina = buttonLWebSair.click();
+		//pagina = buttonLWebSair.click();
 		buttonSair.click();
 	}
 	
@@ -261,8 +267,12 @@ public class LerSite {
 		
 		
 		
-		String filename = getNomePDF(url, String.valueOf(imovel.getCodigoimovel()));
-		File file = new File(filename);
+		String nome = "";
+		if (imovel.getCodigoimovel()==0) {
+			nome = imovel.getMatricula();
+		} else nome = String.valueOf(imovel.getCodigoimovel());
+		String filename = getNomePDF(url, nome);
+		File file = new File(diretorio+filename);
 		InputStream is;
 		
 		
@@ -279,7 +289,9 @@ public class LerSite {
 		
 	}
 	
-	public String getNomePDF(String url, String codigoImovel) {
+
+	
+	public String getNomePDF(String url, String nome) {
 		String filename= "";
 		for (int i=url.length()-3;i>0;i--) {
 			if (url.charAt(i)!='/') {
@@ -288,7 +300,7 @@ public class LerSite {
 				i = -1;
 			}
 		}
-		filename = "c:\\logs\\casan\\" + codigoImovel + "_" + filename + ".pdf";
+		filename = nome + "_" + filename + ".pdf";
 		return filename;
 	}
 	
@@ -322,7 +334,8 @@ public class LerSite {
 	
 	
 	public Fatura lerPDF(Fatura fatura) throws IOException {
-		 File file = new File(fatura.getArquivo());
+		 String filename = diretorio + fatura.getArquivo();
+		 File file = new File(filename);
 	     PDDocument document = PDDocument.load(file);
 	     if (!document.isEncrypted()) {
 	    	 PDFTextStripperByArea stripper = new PDFTextStripperByArea();
@@ -333,7 +346,9 @@ public class LerSite {
              String pdfFileInText = tStripper.getText(document);
 
              String lines[] = pdfFileInText.split("\\r?\\n");
+             String arquivo = fatura.getArquivo();
              fatura = new Fatura();
+             fatura.setArquivo(arquivo);
              for (int i=0;i<lines.length-1;i++) {
             	 fatura.setMatricula(lines[34]);
             	 fatura.setReferencia(lines[17]);
