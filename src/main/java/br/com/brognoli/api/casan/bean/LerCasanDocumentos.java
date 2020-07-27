@@ -39,8 +39,8 @@ public class LerCasanDocumentos {
 	HtmlButton buttonLWebSair;
 	private int linhaGeral = 0;
 	private File file;
-	String diretorio = "C:\\Logs\\casan\\";
-	//String diretorio = "C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\casan\\";
+	//String diretorio = "C:\\Logs\\casan\\";
+	String diretorio = "C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\casan\\";
 	
 	public Imovelcasan getCertidaoNegativa(Imovelcasan imovel) {
 		inicar("https://e.casan.com.br/certidaonegativa/");
@@ -142,6 +142,7 @@ public class LerCasanDocumentos {
 	
 	public void logof() throws IOException {
 		driver.close();
+		driver.quit();
 	}
 	
 	public Imovelcasan verificarSituacao(Imovelcasan imovel, String site) throws FailingHttpStatusCodeException, MalformedURLException, IOException  {

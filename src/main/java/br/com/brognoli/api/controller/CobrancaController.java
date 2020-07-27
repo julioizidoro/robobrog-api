@@ -208,7 +208,8 @@ public class CobrancaController {
 							arquivo = new Cobrancaarquivo();
 						}
 						arquivo.setCobranca(cobranca);
-						arquivo.setDatagravacao(new Date());;
+						arquivo.setDatagravacao(new Date());
+						fileName = fileName.replace(".pdf", "");
 						arquivo.setNomearquivo(fileName);
 						arquivo = cobrancaArquivoRepository.save(arquivo);
 						InputStream is;

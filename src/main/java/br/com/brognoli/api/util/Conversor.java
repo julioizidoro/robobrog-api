@@ -25,6 +25,8 @@ public class Conversor {
         return dataFormatada;
     }
 	
+	
+	
 	public Date SomarDiasData(Date data, int dias) {
         Calendar c = new GregorianCalendar();
         c.setTime(data);
@@ -55,6 +57,19 @@ public class Conversor {
 		String ano = sData.substring(6,10);
 		String mesAno = String.valueOf(ano) + "_" + String.valueOf(mes);
 		return mesAno;
+	}
+	
+	
+	public Float formatarStringfloat(String valor) {
+		String novoValor = "";
+		for (int i = 0; i < valor.length(); i++) {
+			if (valor.charAt(i) == ',') {
+				novoValor = novoValor + ".";
+			} else if (!(valor.charAt(i) == '.')) {
+				novoValor = novoValor + valor.charAt(i);
+			}
+		}
+		return Float.parseFloat(novoValor);
 	}
 
 }

@@ -5,6 +5,7 @@ import java.util.List;
 public class Boletos {
 	
 	private Cobranca cobranca;
+	private String codigoImovel;
 	private String Endereco;
 	private String numero;
 	private String linhaDigitavel;
@@ -98,6 +99,12 @@ public class Boletos {
 	}
 	public void setTipo(String tipo) {
 		this.tipo = tipo;
+	}
+	public String getCodigoImovel() {
+		return codigoImovel;
+	}
+	public void setCodigoImovel(String codigoImovel) {
+		this.codigoImovel = codigoImovel;
 	}
 	
 	

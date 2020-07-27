@@ -142,21 +142,32 @@
 			<version>1.11.519</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.apache.poi/openxml4j -->
-<dependency>
-            <groupId>org.apache.poi</groupId>
-            <artifactId>poi-ooxml</artifactId>
-            <version>3.16</version>
-            <type>jar</type>
-        </dependency>
-		
-        
 		<dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>23.0</version>
-        </dependency>
-   
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>3.16</version>
+			<type>jar</type>
+		</dependency>
 
+
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>23.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.docusign</groupId>
+			<artifactId>docusign-esign-java</artifactId>
+			<version>3.6.0</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.testautomationguru.pdfutil/pdf-util -->
+<dependency>
+    <groupId>com.testautomationguru.pdfutil</groupId>
+    <artifactId>pdf-util</artifactId>
+    <version>0.0.3</version>
+</dependency>
+		
 
 	</dependencies>
 

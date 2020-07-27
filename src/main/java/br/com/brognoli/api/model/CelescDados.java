@@ -17,6 +17,8 @@ public class CelescDados {
 	private String situacao;
 	private String dataCorte;
 	private List<CelescFatura> listaFatura;
+	private List<CelescHistorico> listaHistorico;
+	
 	public String getNome() {
 		return nome;
 	}
@@ -94,6 +96,14 @@ public class CelescDados {
 	}
 	public void setListaFatura(List<CelescFatura> listaFatura) {
 		this.listaFatura = listaFatura;
+	}
+	
+	
+	public List<CelescHistorico> getListaHistorico() {
+		return listaHistorico;
+	}
+	public void setListaHistorico(List<CelescHistorico> listaHistorico) {
+		this.listaHistorico = listaHistorico;
 	}
 	@Override
 	public int hashCode() {

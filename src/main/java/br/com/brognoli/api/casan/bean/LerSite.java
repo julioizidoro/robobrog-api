@@ -92,6 +92,7 @@ public class LerSite {
 	    			if (fechouDriver) {
 	    				fechouDriver = true;
 	    				driver.close();
+	    				driver.quit();
 	    			}
 	    			
 	    		} catch (Exception e) {
@@ -99,6 +100,7 @@ public class LerSite {
 	    			lista.get(linha).setSituacao("Ocorreu erro " + e.getMessage());
 	    			linhaGeral = i;
 	    			driver.close();
+	    			driver.quit();
 	    		}
 	    	}
 	    	

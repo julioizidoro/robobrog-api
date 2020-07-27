@@ -6,6 +6,9 @@ public class CelescFatura {
 	private String dataVencimento;
 	private String numero;
 	private String valor;
+	private String url;
+	
+	
 	public String getMes() {
 		return mes;
 	}
@@ -29,6 +32,12 @@ public class CelescFatura {
 	}
 	public void setValor(String valor) {
 		this.valor = valor;
+	}
+	public String getUrl() {
+		return url;
+	}
+	public void setUrl(String url) {
+		this.url = url;
 	}
 
 	

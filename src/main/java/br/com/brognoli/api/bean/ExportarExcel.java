@@ -3,19 +3,29 @@ package br.com.brognoli.api.bean;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.text.DateFormat;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.pdfbox.contentstream.operator.state.Concatenate;
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 
 import br.com.brognoli.api.model.Boletos;
 import br.com.brognoli.api.model.Boletoseguro;
 import br.com.brognoli.api.model.Carne;
 import br.com.brognoli.api.model.CarneIPTU;
+import br.com.brognoli.api.model.Fornecedor;
 import br.com.brognoli.api.model.Resumo;
+import br.com.brognoli.api.util.Conversor;
 
 public class ExportarExcel {
 
@@ -276,7 +286,9 @@ public class ExportarExcel {
 				row.createCell(1).setCellValue(c.getDatavencimento());
 				row.createCell(2).setCellValue(c.getLinhaDigitavel());
 				row.createCell(3).setCellValue(c.getCnpj());
-				row.createCell(4).setCellValue(c.getNomearquivo());
+				String nomeArquivo = c.getNomearquivo();
+				nomeArquivo = nomeArquivo.replace(".pdf", "");
+				row.createCell(4).setCellValue(nomeArquivo);
 				row.createCell(5).setCellValue(c.getTipo());
 			}
 
@@ -285,6 +297,132 @@ public class ExportarExcel {
 		} catch (Exception e) {
 			
 			System.out.println(e);
+		}
+
+		try {
+			fos.flush();
+			fos.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+	
+public void gerarOp(List<Boletos> listaBoletos) {
+		
+		
+		
+		HSSFWorkbook workbook = new HSSFWorkbook();
+		HSSFSheet gs = workbook.createSheet("Eventos Valores");
+		HSSFSheet op = workbook.createSheet("OP");
+		FileOutputStream fos = null;
+		HSSFCellStyle style =  workbook.createCellStyle();
+		style.setDataFormat(workbook.createDataFormat().getFormat("0.00"));
+		style.setAlignment(HorizontalAlignment.RIGHT);
+
+		try {
+			file = new File("GarantiaTotalS.xls");
+			fos = new FileOutputStream(file);
+			int i = 0;
+			HSSFRow row = gs.createRow(i);
+
+			row.createCell(0).setCellValue("Competencia");
+			row.createCell(1).setCellValue("Data vencimento");
+			row.createCell(2).setCellValue("Linha digitável");
+			row.createCell(3).setCellValue("CNPJ");
+			row.createCell(4).setCellValue("Nome arquivo");
+			row.createCell(5).setCellValue("Tipo");
+			for (Boletos c : listaBoletos) {
+				i++;
+				row = gs.createRow(i);
+				row.createCell(0).setCellValue(c.getReferencia());
+				row.createCell(1).setCellValue(c.getDatavencimento());
+				row.createCell(2).setCellValue(c.getLinhaDigitavel());
+				row.createCell(3).setCellValue(c.getCnpj());
+				if (c.getNomearquivo()!=null) {
+					String nomeArquivo = c.getNomearquivo();
+					nomeArquivo = nomeArquivo.replace(".pdf", "");
+					row.createCell(4).setCellValue(nomeArquivo);
+				}else {
+					row.createCell(4).setCellValue("");
+				}
+						
+				if (c.getTipo().equalsIgnoreCase("Celesc1")) {
+					row.createCell(5).setCellValue("Celesc");
+				} else row.createCell(5).setCellValue(c.getTipo());
+			}
+			
+			i = 0;
+			
+			
+			row = op.createRow(i);
+			
+			row.createCell(0).setCellValue("Data Vencimento");
+			row.createCell(1).setCellValue("Imovel");
+			row.createCell(2).setCellValue("Conta");
+			row.createCell(3).setCellValue("Agencia");
+			row.createCell(4).setCellValue("Valor");
+			row.createCell(5).setCellValue("Evento");
+			row.createCell(6).setCellValue("Historico");
+			row.createCell(7).setCellValue("Complemento");
+			row.createCell(8).setCellValue("Cód.Barras");
+			row.createCell(9).setCellValue("Fornecedor");
+			row.createCell(10).setCellValue("Gerar");
+			Conversor conversor = new Conversor();
+			for (Boletos c : listaBoletos) {
+				try {
+				i++;
+				String cb = converterCodigoBarras(c.getTipo(), c.getLinhaDigitavel());
+				String valor ="0,00";
+				String dataVencimento = "";
+				
+					
+				DecimalFormat df = new DecimalFormat("0.00");
+				df.setMaximumFractionDigits(2);
+				if (c.getTipo().equalsIgnoreCase("Condominio")) {
+					if (cb.length()>20) {
+						float fvalor = getValor(cb);
+						valor = df.format(fvalor);
+						dataVencimento = getDataVencimento(cb);
+					}
+				}else {
+					if (c.getValor()!=null) {
+						Float fvalor = conversor.formatarStringfloat(c.getValor());
+						valor = df.format(fvalor);
+						dataVencimento = c.getDatavencimento();
+					}
+				}
+				
+				
+				row = op.createRow(i);
+				row.createCell(0).setCellValue(dataVencimento);
+			    String codigo = c.getCodigoImovel();
+				if (codigo.length()>5) {
+					codigo = codigo.substring(0, 5);
+				} 
+				row.createCell(1).setCellValue(codigo);
+				row.createCell(2).setCellValue("");
+				row.createCell(3).setCellValue("");
+				row.createCell(4).setCellValue(valor);
+				row.getCell(4).setCellStyle(style);
+				row.createCell(5).setCellValue("");
+				row.createCell(6).setCellValue("");
+				row.createCell(7).setCellValue("");
+				row.createCell(8).setCellValue(cb);
+				if (c.getCnpj().length()==18) {
+					row.createCell(9).setCellValue(getFornecedorCNPJ(c.getCnpj()));
+				} else row.createCell(9).setCellValue(0);
+				row.createCell(10).setCellValue("S");
+				}catch (Exception e) {
+					// TODO: handle exception
+				}
+			}
+
+			workbook.write(fos);
+
+		} catch (Exception e) {
+			
+			System.out.println(e.getMessage());
 		}
 
 		try {
@@ -387,16 +525,18 @@ public class ExportarExcel {
 			fos = new FileOutputStream(file);
 			int i = 0;
 			HSSFRow row = firstSheet.createRow(i);
-			row.createCell(0).setCellValue("Data Vencimento");
-			row.createCell(1).setCellValue("Valor");
-			row.createCell(2).setCellValue("Linha digitável");
+			row.createCell(0).setCellValue("Imovel");
+			row.createCell(1).setCellValue("Data Vencimento");
+			row.createCell(2).setCellValue("Valor");
+			row.createCell(3).setCellValue("Cód.Barras");
 			
 			for (Boletoseguro c : listaBoletos) {
 				i++;
 				row = firstSheet.createRow(i);
-				row.createCell(0).setCellValue(c.getDatavencimento());
-				row.createCell(1).setCellValue(c.getValor());
-				row.createCell(2).setCellValue(c.getLinhadigitavel());
+				row.createCell(0).setCellValue(c.getImovel());
+				row.createCell(1).setCellValue(c.getDatavencimento());
+				row.createCell(2).setCellValue(c.getValor());
+				row.createCell(3).setCellValue(converterCodigoBarras("Condominio", c.getLinhadigitavel()));
 			}
 
 			workbook.write(fos);
@@ -414,6 +554,82 @@ public class ExportarExcel {
 		}
 
 	}
+		
+
+
+	public String converterCodigoBarras(String tipo, String linha) {
+		String codigoBarras = "";
+		if (tipo.equalsIgnoreCase("Condominio")) {
+			if (linha.length()>=44) {
+				
+			//Posicao 1:3
+			String linha1 = linha.substring(0, 3);
+			//Posicao 4:1
+			String linha2 = linha.substring(3, 4);
+			//Posicao 33:1
+			String linha3 = linha.substring(32, 33);
+			//Posicao 34:14
+			String linha4 = linha.substring(33, 47);
+			//Posicao 5:5
+			String linha5 = linha.substring(4, 9);
+			//Posicao 11:10
+			String linha6 = linha.substring(10, 20);
+			//Posicao 22:10
+			String linha7 = linha.substring(21, 31);
+			codigoBarras = linha1 + linha2 + linha3 + linha4 + linha5 + linha6 + linha7;
+			}
+		} else {
+			//Posicao 0:11
+			String linha1 = linha.substring(0,11);
+			//Posicao 13:23
+			String linha2 = linha.substring(12,23);
+			//Posicao 25:35
+			String linha3 = linha.substring(24,35);
+			//Posicao 37:47
+			String linha4 = linha.substring(36,48);
+			codigoBarras = linha1 + linha2 + linha3 + linha4;
+			
+		}
+
+		return codigoBarras;
+	}
+	
+	public Float getValor(String codigoBarras) {
+		Float valor = 0.0f;
+		String sValor ="";
+		if (codigoBarras.length()>15) {
+			Conversor c = new  Conversor();
+			sValor = codigoBarras.substring(9,19);
+			DecimalFormat df = new DecimalFormat("0.00");
+			df.setMaximumFractionDigits(2);
+			valor = c.formatarStringfloat(sValor);
+			valor = valor/100;
+			sValor = df.format(valor);
+			valor = c.formatarStringfloat(sValor);
+		}
+		return valor;
+	}
+	
+	public String getDataVencimento(String linha) {
+		Conversor conversor = new Conversor();
+		Date date = conversor.ConvercaoStringData("1997-10-07");
+		String sFator = linha.substring(5,9);
+		date = conversor.SomarDiasData(date, Integer.parseInt(sFator));
+		return conversor.ConvercaoDataBR(date);
+	}
+	
+	public int getFornecedorCNPJ(String  cnpj) {
+		cnpj = cnpj.replace(".","p");
+		cnpj = cnpj.replace("/","b");
+		cnpj = cnpj.replace("-","t");
+		RestTemplate restTemplate = new RestTemplate();
+		String url = "http://192.168.1.95/robobrog-link/fornecdores/cnpj/" + cnpj; 
+		Fornecedor fornecedor  = restTemplate.getForObject(url, Fornecedor.class); 
+		return fornecedor.getCodigo();
+	}
+	
+	
+	
 	
 	
 

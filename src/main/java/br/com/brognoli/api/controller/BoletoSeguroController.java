@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -30,6 +32,7 @@ import com.itextpdf.text.pdf.parser.TextExtractionStrategy;
 import br.com.brognoli.api.bean.ExportarExcel;
 import br.com.brognoli.api.model.Boletos;
 import br.com.brognoli.api.model.Boletoseguro;
+import br.com.brognoli.api.model.CelescDados;
 import br.com.brognoli.api.model.Imoveladm;
 import br.com.brognoli.api.model.Linhas;
 import br.com.brognoli.api.service.S3Service;
@@ -88,6 +91,9 @@ public class BoletoSeguroController {
 			}
 			try {
 					Boletoseguro b = lerPdfSeguro(lines);
+					String nome = uploadFile.getOriginalFilename();
+					nome = nome.replace(".pdf", "");
+					b.setImovel(nome);
 					listaBoletos.add(b);
 				
 			} catch (Exception e) {
@@ -147,6 +153,14 @@ public class BoletoSeguroController {
 			}
 		}
 		return "";
+	}
+	
+	@GetMapping("cb")
+	@ResponseStatus(HttpStatus.CREATED)
+	public void calcularCB(){
+		ExportarExcel ex = new ExportarExcel();
+		//ex.converterCodigoBarras("34191757289198011293181008030009983220000033150");
+		
 	}
 
 }

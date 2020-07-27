@@ -62,8 +62,6 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.validation.Valid;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.text.PDFTextStripper;
-import org.apache.pdfbox.text.PDFTextStripperByArea;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -166,6 +164,7 @@ public class IptuSjController {
 				System.out.println("Erro" + ex);
 				try {
 					driver.close();
+					driver.quit();
 				} catch (Exception e) {
 					System.out.println("Erro ao fechar driver");
 				}
