@@ -586,7 +586,7 @@ public void gerarOp(List<Boletos> listaBoletos) {
 			//Posicao 25:35
 			String linha3 = linha.substring(24,35);
 			//Posicao 37:47
-			String linha4 = linha.substring(36,48);
+			String linha4 = linha.substring(36,47);
 			codigoBarras = linha1 + linha2 + linha3 + linha4;
 			
 		}

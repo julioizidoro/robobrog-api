@@ -310,7 +310,7 @@ public class CelescController {
 		celescDados.setSituacao(listaElementos.get(10).getText());
 		if (listaElementos.size()>=14) {
 			celescDados.setListaFatura(new ArrayList<CelescFatura>());
-			for (int i=11;i<listaElementos.size()-1;i++) {
+			for (int i=12;i<listaElementos.size()-1;i++) {
 				CelescFatura fatura = new CelescFatura();
 				fatura.setMes(listaElementos.get(i).getText());
 				i++;

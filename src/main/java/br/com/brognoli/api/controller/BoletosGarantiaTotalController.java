@@ -568,28 +568,35 @@ public class BoletosGarantiaTotalController {
 					}
 				} else if (tipo.equalsIgnoreCase("Casan")) {
 					Boletos b = lerPdfCasan(lines);
-					b.setCodigoImovel(codigoImovel);
+					b.setCodigoImovel(getNomeFatura(uploadFile.getOriginalFilename().replace(".pdf", "")));
 					b.setNomearquivo(uploadFile.getOriginalFilename());
 					b.setNomearquivo(b.getNomearquivo().replace(".pdf", ""));
 					b.setTipo(tipo);
 					listaBoletos.add(b);
-				} else if (tipo.equalsIgnoreCase("Celesc")) {
+				} else if (tipo.equalsIgnoreCase("CelescSegundaVia")) {
 					Boletos b = lerPdfCelesc(lines, tipo);
-					b.setCodigoImovel(codigoImovel);
+					b.setCodigoImovel(getNomeFatura(uploadFile.getOriginalFilename().replace(".pdf", "")));
 					b.setNomearquivo(uploadFile.getOriginalFilename());
 					b.setNomearquivo(b.getNomearquivo().replace(".pdf", ""));
 					b.setTipo(tipo);
 					listaBoletos.add(b);
-				}else if (tipo.equalsIgnoreCase("Celesc1")) {
+				}else if (tipo.equalsIgnoreCase("CelescAgrupada")) {
 					Boletos b = lerPdfCelesc(lines, tipo);
-					b.setCodigoImovel(codigoImovel);
+					b.setCodigoImovel(getNomeFatura(uploadFile.getOriginalFilename().replace(".pdf", "")));
 					b.setNomearquivo(uploadFile.getOriginalFilename());
 					b.setNomearquivo(b.getNomearquivo().replace(".pdf", ""));
 					b.setTipo(tipo);
 					listaBoletos.add(b);
-				}else if (tipo.equalsIgnoreCase("SAMAE Paloca")) {
-					Boletos b = lerPdfSAMAIPalhoca(lines);
-					b.setCodigoImovel(codigoImovel);
+				}else if (tipo.equalsIgnoreCase("CelescNaoVencida")) {
+					Boletos b = lerPdfCelesc(lines, tipo);
+					b.setCodigoImovel(getNomeFatura(uploadFile.getOriginalFilename().replace(".pdf", "")));
+					b.setNomearquivo(uploadFile.getOriginalFilename());
+					b.setNomearquivo(b.getNomearquivo().replace(".pdf", ""));
+					b.setTipo(tipo);
+					listaBoletos.add(b);
+				}else if ((tipo.equalsIgnoreCase("SAMAEAgrupada")) || (tipo.equalsIgnoreCase("SAMAENormal"))) {
+					Boletos b = lerPdfSAMAIPalhoca(lines, tipo);
+					b.setCodigoImovel(getNomeFatura(uploadFile.getOriginalFilename().replace(".pdf", "")));
 					b.setNomearquivo(uploadFile.getOriginalFilename());
 					b.setNomearquivo(b.getNomearquivo().replace(".pdf", ""));
 					b.setTipo(tipo);
@@ -647,6 +654,11 @@ public class BoletosGarantiaTotalController {
 					System.out.println(lines.get(i).getLinha().substring(5, 6));
 					if (lines.get(i).getLinha().substring(5, 6).equalsIgnoreCase(".")) {
 						boleto.setLinhaDigitavel(lines.get(i).getLinha());
+						boleto.setNomearquivo(nomearquivo);
+						achou = true;
+
+					} else if (lines.get(i).getLinha().substring(0, 8).equalsIgnoreCase(" 756-0 ")) {
+						boleto.setLinhaDigitavel(lines.get(i).getLinha().substring(9, lines.get(i).getLinha().length()));
 						boleto.setNomearquivo(nomearquivo);
 						achou = true;
 
@@ -715,6 +727,13 @@ public class BoletosGarantiaTotalController {
 						achou = true;
 
 					}
+				}else if (lines.get(i).getLinha().length() == 80) {
+					if (lines.get(i).getLinha().substring(5, 6).equalsIgnoreCase(".")) {
+						boleto.setLinhaDigitavel(lines.get(i).getLinha().substring(0, 54));
+						boleto.setNomearquivo(nomearquivo);
+						achou = true;
+					}
+					
 				}
 			}
 		} catch (Exception e) {
@@ -1404,6 +1423,43 @@ public class BoletosGarantiaTotalController {
 					return r;
 				} 
 			}
+		}else if (padrao==59) {
+			for(int i=0;i<lines.size();i++) {
+				if (lines.get(i).getLinha().equalsIgnoreCase("Cedente")) {
+					String l = lines.get(i+1).getLinha();
+					String r =  l.substring(l.length()-18, l.length()-1);
+					return r;
+				} 
+			}
+		}else if (padrao==60) {
+			for(int i=0;i<lines.size();i++) {
+				if (lines.get(i).getLinha().equalsIgnoreCase("Pagável preferencialmente nos canais eletrônicos de sua instituição financeira")) {
+					String l = lines.get(i+1).getLinha();
+					String r = "";
+					for (int c=0;c<l.length();c++) {
+						if (l.charAt(c)=='(') {
+							r= l.substring(i+1, i+19);
+						}
+					}
+					return r;
+				} 
+			}
+		}else if (padrao==61) {
+			for(int i=0;i<lines.size();i++) {
+				if (lines.get(i).getLinha().equalsIgnoreCase("PAGÁVEL EM QUALQUER BANCO OU LOTÉRICA MESMO APÓS VENCIMENTO")) {
+					String l = lines.get(i+1).getLinha();
+					String r =  l.substring(l.length()-19, l.length()-1);
+					return r;
+				} 
+			}
+		}else if (padrao==62) {
+			for(int i=0;i<lines.size();i++) {
+				if (lines.get(i).getLinha().equalsIgnoreCase("Número do documento Contrato CPF/CEI/CNPJ Vencimento Valor documento")) {
+					String l = lines.get(i+1).getLinha();
+					String r =  l.substring(25, 39);
+					return r;
+				} 
+			}
 		}else if (padrao==-1) {
 			return "SEM CNPJ";
 		}
@@ -1467,19 +1523,30 @@ public class BoletosGarantiaTotalController {
 	public String retornoTipoBoleto(List<Linhas> lines) {
 		for(int i=0;i<lines.size();i++) {
 			if (lines.get(i).getLinha().equalsIgnoreCase("Celesc Distribuicao S.A")) {
-				return "Celesc";
+				return "CelescSegundaVia";
 			}
 		}
 		if (lines.size()>=2) {
 			if (lines.get(1).getLinha().equalsIgnoreCase("-     -")) {
-				return "Celesc1";
+				return "CelescAgrupada";
+			}
+		}
+		if (lines.size()>=2) {
+			if (lines.get(0).getLinha().contains("Nota Fiscal/Conta de Energia Eletrica")) {
+				return "CelescNaoVencida";
 			}
 		}
 		if (lines.get(0).getLinha().equalsIgnoreCase("DESCRIÇÃO DOS SERVIÇOS FATURADOS")) {
 			return "Casan";
 		}
 		if (lines.get(0).getLinha().equalsIgnoreCase("SAMAE Palhoça")) {
-			return "SAMAE Palhoça";
+			return "SAMAEAgrupada";
+		}
+		if (lines.get(0).getLinha().equalsIgnoreCase("CNPJ/MF 82.892.316/0001-08")) {
+			return "SAMAENormal";
+		} 
+		if (lines.get(0).getLinha().equalsIgnoreCase("DESCRIÇÃO DOS SERVIÇOS FATURADOS")) {
+			return "Casan";
 		}
 		return "Condominio";
 	}
@@ -1494,38 +1561,47 @@ public class BoletosGarantiaTotalController {
         return boleto;
 	}
 	
-	public Boletos lerPdfSAMAIPalhoca(List<Linhas> lines) {
+	public Boletos lerPdfSAMAIPalhoca(List<Linhas> lines, String tipo) {
 		Boletos boleto = new Boletos(); 
-		boleto.setLinhaDigitavel(getLinhaDigitavelSAMAIPalhoca(lines));
-        boleto.setDatavencimento(getDataVencimentoCasan(lines));
-        boleto.setValor(getValorSAMAIPalhoca(lines));
-        boleto.setReferencia("");
-        boleto.setCnpj("11.594.126/0001-58");
+		boleto.setLinhaDigitavel(getLinhaDigitavelSAMAIPalhoca(lines, tipo));
+        boleto.setDatavencimento(getDataVencimentoSAMAE(lines, tipo));
+        boleto.setValor(getValorSAMAIPalhoca(lines, tipo));
+        boleto.setReferencia(getReferenciaSamai(lines, tipo));
+        boleto.setCnpj("82.892.316/0001-08");
+        
         return boleto;
 	}
 	
 	public Boletos lerPdfCelesc(List<Linhas> lines, String tipo) {
 		Boletos boleto = new Boletos();
-   	 	boleto.setValor(getValorCelesc(lines));
-		boleto.setLinhaDigitavel(getLinhaDigitavelCelesc(lines));
-		boleto.setDatavencimento(getDataVencimentoCelesc(lines));
+   	 	boleto.setValor(getValorCelesc(lines, tipo));
+		boleto.setLinhaDigitavel(getLinhaDigitavelCelesc(lines, tipo));
+		boleto.setDatavencimento(getDataVencimentoCelesc(lines, tipo));
 		boleto.setCnpj("08.336.783/0001-90");
    	 	//boleto.setReferencia(lines.get(8).getLinha().substring(lines.get(8).getLinha().length()-7, lines.get(8).getLinha().length()));
-		boleto.setReferencia(getReferenciaCelesc(lines));
+		boleto.setReferencia(getReferenciaCelesc(lines, tipo));
 		return boleto;
 	}
 	
-	public String getReferenciaCelesc(List<Linhas> lines) {
+	public String getReferenciaCelesc(List<Linhas> lines, String tipo) {
 		String referencia = "";
-		for(int i=0;i<lines.size();i++) {
-			if (lines.get(i).getLinha().length()>18) {
-				if (lines.get(i).getLinha().substring(0,11).equalsIgnoreCase("REFERÊNCIA:")) {
-					referencia = lines.get(i).getLinha().substring(12,19);
+		if (tipo.equalsIgnoreCase("CelescNaoVencida")) {
+			if (lines.get(2).getLinha().length()>15) {
+					referencia = lines.get(2).getLinha().substring(0,7);
 					return referencia;
-				}
 			}
-			
+		} else if (tipo.equalsIgnoreCase("CelescSegundaVia")) {
+			for(int i=0;i<lines.size();i++) {
+				if (lines.get(i).getLinha().length()>18) {
+					if (lines.get(i).getLinha().substring(0,11).equalsIgnoreCase("REFERÊNCIA:")) {
+						referencia = lines.get(i).getLinha().substring(12,19);
+						return referencia;
+					}
+				}
+				
+			}
 		}
+		
 		return referencia;
 	}
 	
@@ -1548,11 +1624,19 @@ public class BoletosGarantiaTotalController {
 		return "";
 	}
 	
-	public String getLinhaDigitavelSAMAIPalhoca(List<Linhas> lines) {
-		String linha = lines.get(lines.size()-5).getLinha();
-		linha = linha.replace(" ", "");
-		linha = linha.replace("-", "");
-		return linha;
+	public String getLinhaDigitavelSAMAIPalhoca(List<Linhas> lines, String tipo) {
+		if (tipo.equalsIgnoreCase("SAMAEAgrupada")) {
+			String linha = lines.get(lines.size()-4).getLinha();
+			linha = linha.replace(" ", "");
+			linha = linha.replace("-", "");
+			return linha;
+		} else {
+			String linha = lines.get(lines.size()-2).getLinha();
+			linha = linha.replace(" ", "");
+			linha = linha.replace("-", "");
+			return linha;
+		}
+		
 	}
 	
 	
@@ -1565,7 +1649,16 @@ public class BoletosGarantiaTotalController {
 		return "";
 	}
 	
-	public String getValorCelesc(List<Linhas> lines) {
+	public String getValorCelesc(List<Linhas> lines, String tipo) {
+		if (tipo.equalsIgnoreCase("CelescNaoVencida")) {
+			for(int i=0;i<lines.size();i++) {
+				if (lines.get(i).getLinha().contains("Reservado ao Fisco Periodo Fiscal:")) {
+					String linha = lines.get(i-1).getLinha();
+					linha = linha.substring(13, linha.length());
+					return linha;
+				}
+			}
+		}
 		for(int i=0;i<lines.size();i++) {
 			if (lines.get(i).getLinha().equalsIgnoreCase("VALOR ATÉ O VENCIMENTO")) {
 				String valor = lines.get(i+1).getLinha();
@@ -1580,17 +1673,37 @@ public class BoletosGarantiaTotalController {
 		return "";
 	}
 	
-	public String getValorSAMAIPalhoca(List<Linhas> lines) {
+	public String getValorSAMAIPalhoca(List<Linhas> lines, String tipo) {
+		if (tipo.equalsIgnoreCase("SAMAEAgrupada")) {
+			
 		for(int i=0;i<lines.size();i++) {
 			if (lines.get(i).getLinha().equalsIgnoreCase(" Seqüencial Valor a Pagar: (R$)")) {
 				String valor = lines.get(i+1).getLinha();
 				return valor;
 			}
 		}
+		} else {
+			for(int i=0;i<lines.size();i++) {
+				if (lines.get(i).getLinha().equalsIgnoreCase("Vencimento Valor a Pagar (R$)")) {
+					String linha = lines.get(i+1).getLinha();
+					String r = linha.substring(11,linha.length());
+					return r;
+				}
+			}
+		}
 		return "";
 	}
 	
-	public String getDataVencimentoCelesc(List<Linhas> lines) {
+	public String getDataVencimentoCelesc(List<Linhas> lines, String tipo) {
+		if (tipo.equalsIgnoreCase("CelescNaoVencida")) {
+			for(int i=0;i<lines.size();i++) {
+				if (lines.get(i).getLinha().contains("Reservado ao Fisco Periodo Fiscal:")) {
+					String linha = lines.get(i-1).getLinha();
+					linha = linha.substring(0, 13);
+					return linha;
+				}
+			}
+		}
 		for(int i=0;i<lines.size();i++) {
 			if (lines.get(i).getLinha().equalsIgnoreCase("VENCIMENTO")) {
 				return lines.get(i+1).getLinha();
@@ -1611,8 +1724,41 @@ public class BoletosGarantiaTotalController {
 		return "";
 	}
 	
-	public String getLinhaDigitavelCelesc(List<Linhas> lines) {
+	public String getDataVencimentoSAMAE(List<Linhas> lines, String tipo) {
+		if (tipo.equalsIgnoreCase("SAMAEAgrupada")) {
+			for(int i=0;i<lines.size();i++) {
+				if (lines.get(i).getLinha().equalsIgnoreCase("DATA DE VENCIMENTO")) {
+					return lines.get(i+4).getLinha();
+				}
+			}
+		}else {
+			for(int i=0;i<lines.size();i++) {
+				if (lines.get(i).getLinha().equalsIgnoreCase("Vencimento Valor a Pagar (R$)")) {
+					String linha = lines.get(i+1).getLinha();
+					String r = linha.substring(0,10);
+					return r;
+				}
+			}
+		}
+		
+		return "";
+	}
+	
+	public String getLinhaDigitavelCelesc(List<Linhas> lines, String tipo) {
 		String codigo = "";
+		boolean primeira   = false;
+		for(int i=0;i<lines.size();i++) {
+			if (lines.get(i).getLinha().equalsIgnoreCase("DOCUMENTO DE COBRANÇA")) {
+				if (primeira) {
+					String linha = lines.get(i+3).getLinha();
+					linha = linha.replace(" ", "");
+					return linha;
+				} else {
+					primeira = true;
+				}
+				
+			}
+		}
 		if (lines.size()>45) {
 			if (lines.get(45).getLinha().length()==57) {
 				codigo = lines.get(45).getLinha();
@@ -1624,8 +1770,25 @@ public class BoletosGarantiaTotalController {
 		} else if (lines.get(lines.size()-2).getLinha().length()==57) {
 			codigo = lines.get(lines.size()-2).getLinha();
 			codigo = codigo.replace(" ", "");
+		} else {
+			
 		}
 		return codigo;
+	}
+	
+	public String getReferenciaSamai(List<Linhas> lines, String tipo) {
+		if (tipo.equalsIgnoreCase("SAMAEAgrupada")) {
+			return "";
+		} else {
+			for(int i=0;i<lines.size();i++) {
+				if (lines.get(i).getLinha().contains("Mês/Ano Faturamento: ")) {
+					String linha = lines.get(i).getLinha();
+					String r = linha.substring(linha.length()-7,linha.length());
+					return r;
+				}
+			}
+		}
+		return "";
 	}
 	
 	
@@ -1652,8 +1815,21 @@ public class BoletosGarantiaTotalController {
         String pdfFileInText = tStripper.getText(document);
         System.out.println(pdfFileInText);
     }
-	
-	
-	
 	}
+    
+    public String getNomeFatura(String nomeArquivo) {
+    	String nome = "";
+    	for (int i=nomeArquivo.length()-1;i>0;i--) {
+    		if (nomeArquivo.charAt(i)=='M') {
+    			nome = nomeArquivo.substring(i+1, nomeArquivo.length());
+    			nome = nome.replace(" ", "");
+    			return nome;
+    		}
+    	}
+    	return nome;
+    }
+	
+	
+	
+	
 }
