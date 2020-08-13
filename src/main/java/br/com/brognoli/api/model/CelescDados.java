@@ -16,6 +16,7 @@ public class CelescDados {
 	private String emailfatura;
 	private String situacao;
 	private String dataCorte;
+	private String pedidodesligamento;
 	private List<CelescFatura> listaFatura;
 	private List<CelescHistorico> listaHistorico;
 	
@@ -99,6 +100,12 @@ public class CelescDados {
 	}
 	
 	
+	public String getPedidodesligamento() {
+		return pedidodesligamento;
+	}
+	public void setPedidodesligamento(String pedidodesligamento) {
+		this.pedidodesligamento = pedidodesligamento;
+	}
 	public List<CelescHistorico> getListaHistorico() {
 		return listaHistorico;
 	}

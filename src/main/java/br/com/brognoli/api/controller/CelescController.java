@@ -20,6 +20,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.springframework.data.repository.support.Repositories;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -182,6 +183,23 @@ public class CelescController {
         
     }
 	
+	@GetMapping("/desligamentouc/{unidade}")
+	@ResponseStatus(HttpStatus.CREATED)
+	public ResponseEntity<CelescDados> get2Via(@PathVariable("unidade") String unidade) {
+		celescDados = new CelescDados();
+		if (iniciarPagina()) {
+			getUnidade(unidade, "desligamento", true);
+			driver.close();
+			driver.quit();
+			return ResponseEntity.ok(celescDados);
+		} else  {
+			driver.close();
+			driver.quit();
+			return ResponseEntity.ok(null);
+		}
+		
+	}
+	
 	public boolean iniciarPagina(){
         try {
         Map<String, Object> prefs = new HashMap<String, Object>();
@@ -226,20 +244,45 @@ public class CelescController {
             getDataCorte();
             if (opcao.equalsIgnoreCase("2via")) {
             	get2Via();
+            	getDesligamento();
             } else if (opcao.equalsIgnoreCase("debito")) {
             	if (consHP) {
+            		getDesligamento();
             		getDebitos();
             	}
             } else if (opcao.equalsIgnoreCase("hp")) {
             	if (consHP) {
+            		getDesligamento();
             		getHistoricoPagamento();
             	}
+            }  else if (opcao.equalsIgnoreCase("desligamento")) {
+            	getDesligamento();
             }
         } catch (Exception ex) {
             Logger.getLogger(CelescController.class.getName()).log(Level.SEVERE, null, ex);
         }
 	}
 	
+	public void getDesligamento() {
+		try {
+		WebElement menuDesligamento = driver.findElement(By.xpath("//*[@id=\"mn\"]/table/tbody/tr[9]/td/a"));
+		menuDesligamento.click();
+		List<WebElement> listaElementos = driver.findElements(By.className("textoErroMensagem"));
+		if (listaElementos!=null) {
+			if (listaElementos.size()>0) {
+				celescDados.setPedidodesligamento(listaElementos.get(0).getText());
+			} else {
+				celescDados.setPedidodesligamento("Unidade não possui pedido de desligamento");
+			}
+		} else {
+			celescDados.setPedidodesligamento("Unidade não possui pedido de desligamento");
+		}
+		}catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+	}
+	
+		
 	public void getDataCorte() {
 		WebElement elemento = driver.findElement(By.xpath("//*[@id=\"pg\"]/table[2]/tbody/tr[1]/td/fieldset[1]/legend"));
 		if (elemento!=null) {
@@ -310,7 +353,7 @@ public class CelescController {
 		celescDados.setSituacao(listaElementos.get(10).getText());
 		if (listaElementos.size()>=14) {
 			celescDados.setListaFatura(new ArrayList<CelescFatura>());
-			for (int i=12;i<listaElementos.size()-1;i++) {
+			for (int i=11;i<listaElementos.size()-1;i++) {
 				CelescFatura fatura = new CelescFatura();
 				fatura.setMes(listaElementos.get(i).getText());
 				i++;
@@ -557,13 +600,13 @@ public class CelescController {
 		celescDados.setEmailfatura(listaElementos.get(9).getText());
 		celescDados.setSituacao(listaElementos.get(10).getText());
 		int posicao = 1;
-		int inicoFor = 15;
+		int inicoFor = 14;
 		if (listaElementos.size()>=15) {
 			try {
 				WebElement numeroPaginas = driver.findElement(By.xpath("//*[@id=\"pg\"]/table[2]/tbody/tr[6]/td/table[2]/tbody/tr[1]/td[2]/a[1]"));
-				inicoFor = 16;
+				inicoFor = 15;
 		}catch (Exception e) {
-		    inicoFor = 15;
+		    inicoFor = 14;
 		}
 			
 			celescDados.setListaHistorico(new ArrayList<CelescHistorico>());
