@@ -1,12 +1,15 @@
 package br.com.brognoli.api.controller;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -14,13 +17,20 @@ import java.util.logging.Logger;
 
 import javax.validation.Valid;
 
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.openxml4j.opc.OPCPackage;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.springframework.data.repository.support.Repositories;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -29,8 +39,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.CookieManager;
@@ -41,12 +53,16 @@ import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlInput;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
-import br.com.brognoli.api.bean.Diretorios;
+import br.com.brognoli.api.bean.ExportarExcel;
+import br.com.brognoli.api.bean.LerPDFCelesc;
+import br.com.brognoli.api.model.Boletos;
+import br.com.brognoli.api.model.Carne;
 import br.com.brognoli.api.model.CelescDados;
 import br.com.brognoli.api.model.CelescFatura;
 import br.com.brognoli.api.model.CelescHistorico;
 import br.com.brognoli.api.model.Proprietario;
 import br.com.brognoli.api.model.Resposta;
+import br.com.brognoli.api.service.S3Service;
 import br.com.brognoli.api.util.Conversor;
 
 @CrossOrigin
@@ -56,8 +72,11 @@ public class CelescController {
 	
 	private WebDriver driver;
 	private CelescDados celescDados;
+	private List<CelescDados> listaCelescDados;
 	HtmlPage pagina;
 	WebClient webClient;
+	@Autowired
+	private S3Service s3Service;
 	
 	@GetMapping("/{opcao}/{unidade}")
 	@ResponseStatus(HttpStatus.CREATED)
@@ -199,6 +218,106 @@ public class CelescController {
 		}
 		
 	}
+	
+	@GetMapping("/getlista")
+	@ResponseStatus(HttpStatus.CREATED)
+	public ResponseEntity<List<CelescDados>> getListarCarne() {
+		return ResponseEntity.ok(listaCelescDados);
+	}
+	
+	@PostMapping("/setlista")
+	@ResponseStatus(HttpStatus.CREATED)
+	public void setLista(@Valid @RequestBody List<CelescDados> lista) {
+		listaCelescDados = lista;
+	}
+	
+	@PostMapping("/gerarlista")
+	@ResponseStatus(HttpStatus.CREATED)
+	public void lerXLSX(@RequestParam(name = "file") MultipartFile file) throws IOException, InvalidFormatException {
+		listaCelescDados = new ArrayList<CelescDados>();
+		String url = "c:\\logs\\" + file.getOriginalFilename();
+		File fileToSave = new File(url);
+		fileToSave.createNewFile();
+		FileOutputStream fos = new FileOutputStream(fileToSave);
+		fos.write(file.getBytes());
+		fos.close();
+		BufferedReader br = null;
+		InputStream is = file.getInputStream();
+		OPCPackage pkg = OPCPackage.open(fileToSave);
+		XSSFWorkbook workbook = new XSSFWorkbook(pkg);
+		XSSFSheet sheet = workbook.getSheetAt(0);
+		Iterator linhas = sheet.rowIterator();
+		linhas.next();
+		while (linhas.hasNext()) {
+			XSSFRow linha = (XSSFRow) linhas.next();
+			Iterator celulas = linha.cellIterator();
+			CelescDados celescDados = new CelescDados();
+			celescDados.setSituacao("Carregado");
+			while (celulas.hasNext()) {
+				XSSFCell celula = (XSSFCell) celulas.next();
+				int z = celula.getColumnIndex();
+				switch (z) {
+				case 0:
+					celescDados.setCodigo(celula.toString());
+				}
+			}
+		}
+		listaCelescDados.add(celescDados);
+	}
+	
+	@GetMapping("/getop/{nomepasta}")
+	@ResponseStatus(HttpStatus.CREATED)
+	public ResponseEntity<Resposta> getOP(@PathVariable("nomepasta") String nomepasta) {
+		String caminhoDir="\\\\192.168.1.58\\documentos\\centralfinanceira\\BOLETOS DE CONDOMÍNIOS\\iptusj\\celesc\\" + nomepasta;
+		File dirFile = new File(caminhoDir);
+		if (!dirFile.exists()) {
+			dirFile.mkdir();
+		}
+		Resposta r = new Resposta();
+		List<CelescDados> novaLista = new ArrayList<CelescDados>();
+		if (listaCelescDados!=null) {
+			for (int i=0;i<listaCelescDados.size();i++) {
+				celescDados = new CelescDados();
+				if (iniciarPagina()) {
+					getUnidade(listaCelescDados.get(i).getCodigo(), "debito", true);
+					novaLista.add(celescDados);
+				}
+			}
+			driver.close();
+			driver.quit();
+			
+		}	
+		if (novaLista.size()>0) {
+			List<Boletos> listaBoletos = new ArrayList<Boletos>();
+			LerPDFCelesc lerPDFCelesc = new LerPDFCelesc();
+			for (int i=0;i<novaLista.size();i++) {
+				List<CelescFatura> listaFatura = novaLista.get(i).getListaFatura();
+				if (listaFatura!=null) {
+					if (listaFatura.size()>0) {
+						LerPDFCelesc lerPdfCelesc = new LerPDFCelesc();
+						for(int l=0;l<listaFatura.size();i++) {
+							listaBoletos.add(lerPDFCelesc.carregarPDF(listaFatura.get(i), nomepasta));
+						}
+					}
+				}
+			}
+			if (listaBoletos != null) {
+				if (listaBoletos.size() > 0) {
+					ExportarExcel ex = new ExportarExcel();
+					//ex.gerarGTSimpificada(listaBoletos);
+					ex.gerarOp(listaBoletos);
+					File file = ex.getFile();
+					URI uri = s3Service.uploadFile(file);
+					r.setResultado("ok");
+					return ResponseEntity.ok(r);
+				}
+			}
+		}
+		return ResponseEntity.ok(r);
+	}
+	
+	
+	
 	
 	public boolean iniciarPagina(){
         try {

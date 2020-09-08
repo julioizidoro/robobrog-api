@@ -461,15 +461,16 @@ public void gerarOp(List<Boletos> listaBoletos) {
 		return dataFormatada;
 	}
 	
-	public void exportarResultadoExcelSJ(List<CarneIPTU> listaIPTU) {
+	public void exportarResultadoExcelSJ(List<CarneIPTU> listaIPTU, String caminhoDir, List<Carne> listaCarne) {
         HSSFWorkbook workbook = new HSSFWorkbook();
-		HSSFSheet firstSheet = workbook.createSheet("DAM-PM");
+		HSSFSheet dam = workbook.createSheet("DAM-PM");
+		HSSFSheet res = workbook.createSheet("Resultado");
 		FileOutputStream fos = null;
 		try {
-			file = new File("IPTU_SJ.xls");
+			file = new File(caminhoDir + "IPTU_SJ.xls");
 			fos = new FileOutputStream(file);
 			int i = 0;
-			HSSFRow row = firstSheet.createRow(i);
+			HSSFRow row = dam.createRow(i);
 			row.createCell(0).setCellValue("Inscrição");
 			row.createCell(1).setCellValue("InscriçãoMascara");
 			row.createCell(2).setCellValue("Tipo");
@@ -483,21 +484,43 @@ public void gerarOp(List<Boletos> listaBoletos) {
                        
 			i++;
 			
-			
-			for (CarneIPTU c : listaIPTU) {
-				row = firstSheet.createRow(i);
-				row.createCell(0).setCellValue(c.getInscricao());
-				row.createCell(1).setCellValue(c.getInscricaoMascara());
-				row.createCell(2).setCellValue(c.getTipo());
-	            row.createCell(3).setCellValue(c.getParcela());
-	            row.createCell(4).setCellValue(c.getVencimento());
-	            row.createCell(5).setCellValue(c.getJuros());
-	            row.createCell(6).setCellValue(c.getValor());
-	            row.createCell(7).setCellValue(c.getLinhaDigitavel());
-	            row.createCell(8).setCellValue(c.getCodigoBarras());
-	            row.createCell(9).setCellValue(c.getNomearquivo());
-				i++;
+			if (listaCarne!=null) {
+				for (CarneIPTU c : listaIPTU) {
+					row = dam.createRow(i);
+					row.createCell(0).setCellValue(c.getInscricao());
+					row.createCell(1).setCellValue(c.getInscricaoMascara());
+					row.createCell(2).setCellValue(c.getTipo());
+					row.createCell(3).setCellValue(c.getParcela());
+					row.createCell(4).setCellValue(c.getVencimento());
+					row.createCell(5).setCellValue(c.getJuros());
+					row.createCell(6).setCellValue(c.getValor());
+					row.createCell(7).setCellValue(c.getLinhaDigitavel());
+					row.createCell(8).setCellValue(c.getCodigoBarras());
+					row.createCell(9).setCellValue(c.getNomearquivo());
+					i++;
+				}
 			}
+			
+			
+			i= 0;
+			row = res.createRow(i);
+			
+			 row.createCell(0).setCellValue("Inscrição");
+	         row.createCell(8).setCellValue("Cadastro");
+	         row.createCell(9).setCellValue("Situação");
+	                       
+			 i++;
+			 
+			 for (Carne carne : listaCarne) {
+				 row = res.createRow(i);
+				 row.createCell(0).setCellValue(carne.getInscricao());
+				 row.createCell(1).setCellValue(carne.getCadastro());
+				 row.createCell(2).setCellValue(carne.getSituacao());
+				 i++;
+			 }
+			
+			
+			
 			workbook.write(fos);
 
 		}catch (Exception e) {

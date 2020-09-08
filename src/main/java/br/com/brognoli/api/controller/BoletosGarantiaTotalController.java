@@ -38,6 +38,7 @@ import com.testautomationguru.utility.PDFUtil;
 import br.com.brognoli.api.bean.AdmModelos;
 import br.com.brognoli.api.bean.Diretorios;
 import br.com.brognoli.api.bean.ExportarExcel;
+import br.com.brognoli.api.bean.LerPDFCelesc;
 import br.com.brognoli.api.bean.ModeloAdecon;
 import br.com.brognoli.api.bean.ModeloAdelante;
 import br.com.brognoli.api.bean.ModeloBRCONDOS;
@@ -763,7 +764,9 @@ public class BoletosGarantiaTotalController {
 				} else if (lines.get(i).getLinha().equalsIgnoreCase("Uso Banco (=) Valor do Documento")) {
 					return lines.get(i-1).getLinha();
 				}else if (lines.get(i).getLinha().equalsIgnoreCase("(=) Valor do Documento")) {
-					return lines.get(i-1).getLinha();
+					if (lines.get(i-1).getLinha().length()>13) {
+						return lines.get(i-1).getLinha();
+					}
 				}else if (lines.get(i).getLinha().equalsIgnoreCase("Uso do Banco Valor documento")) {
 					return lines.get(i-1).getLinha();
 				}else if (lines.get(i).getLinha().equalsIgnoreCase("Uso do Banco (=) Valor do Documento")) {
@@ -1460,6 +1463,14 @@ public class BoletosGarantiaTotalController {
 					return r;
 				} 
 			}
+		}else if (padrao==63) {
+			for(int i=0;i<lines.size();i++) {
+				if (lines.get(i).getLinha().equalsIgnoreCase("Autenticação Mecânica - Ficha de Compensação")) {
+					String l = lines.get(i-3).getLinha(); 
+					String r =  l.substring(l.length()-18, l.length());
+					return r;
+				} 
+			}
 		}else if (padrao==-1) {
 			return "SEM CNPJ";
 		}
@@ -1572,38 +1583,9 @@ public class BoletosGarantiaTotalController {
         return boleto;
 	}
 	
-	public Boletos lerPdfCelesc(List<Linhas> lines, String tipo) {
-		Boletos boleto = new Boletos();
-   	 	boleto.setValor(getValorCelesc(lines, tipo));
-		boleto.setLinhaDigitavel(getLinhaDigitavelCelesc(lines, tipo));
-		boleto.setDatavencimento(getDataVencimentoCelesc(lines, tipo));
-		boleto.setCnpj("08.336.783/0001-90");
-   	 	//boleto.setReferencia(lines.get(8).getLinha().substring(lines.get(8).getLinha().length()-7, lines.get(8).getLinha().length()));
-		boleto.setReferencia(getReferenciaCelesc(lines, tipo));
-		return boleto;
-	}
 	
-	public String getReferenciaCelesc(List<Linhas> lines, String tipo) {
-		String referencia = "";
-		if (tipo.equalsIgnoreCase("CelescNaoVencida")) {
-			if (lines.get(2).getLinha().length()>15) {
-					referencia = lines.get(2).getLinha().substring(0,7);
-					return referencia;
-			}
-		} else if (tipo.equalsIgnoreCase("CelescSegundaVia")) {
-			for(int i=0;i<lines.size();i++) {
-				if (lines.get(i).getLinha().length()>18) {
-					if (lines.get(i).getLinha().substring(0,11).equalsIgnoreCase("REFERÊNCIA:")) {
-						referencia = lines.get(i).getLinha().substring(12,19);
-						return referencia;
-					}
-				}
-				
-			}
-		}
-		
-		return referencia;
-	}
+	
+	
 	
 	public String getLinhaDigitavelCasan(List<Linhas> lines) {
 		for(int i=0;i<lines.size();i++) {
@@ -1649,29 +1631,7 @@ public class BoletosGarantiaTotalController {
 		return "";
 	}
 	
-	public String getValorCelesc(List<Linhas> lines, String tipo) {
-		if (tipo.equalsIgnoreCase("CelescNaoVencida")) {
-			for(int i=0;i<lines.size();i++) {
-				if (lines.get(i).getLinha().contains("Reservado ao Fisco Periodo Fiscal:")) {
-					String linha = lines.get(i-1).getLinha();
-					linha = linha.substring(13, linha.length());
-					return linha;
-				}
-			}
-		}
-		for(int i=0;i<lines.size();i++) {
-			if (lines.get(i).getLinha().equalsIgnoreCase("VALOR ATÉ O VENCIMENTO")) {
-				String valor = lines.get(i+1).getLinha();
-				valor = valor.replace("R$ ", "");
-				return valor;
-			} else if (lines.get(i).getLinha().equalsIgnoreCase("Valor a Pagar:")) {
-				String valor = lines.get(i+1).getLinha();
-				valor = valor.replace("R$ ", "");
-				return valor;
-			}
-		}
-		return "";
-	}
+	
 	
 	public String getValorSAMAIPalhoca(List<Linhas> lines, String tipo) {
 		if (tipo.equalsIgnoreCase("SAMAEAgrupada")) {
@@ -1694,25 +1654,7 @@ public class BoletosGarantiaTotalController {
 		return "";
 	}
 	
-	public String getDataVencimentoCelesc(List<Linhas> lines, String tipo) {
-		if (tipo.equalsIgnoreCase("CelescNaoVencida")) {
-			for(int i=0;i<lines.size();i++) {
-				if (lines.get(i).getLinha().contains("Reservado ao Fisco Periodo Fiscal:")) {
-					String linha = lines.get(i-1).getLinha();
-					linha = linha.substring(0, 13);
-					return linha;
-				}
-			}
-		}
-		for(int i=0;i<lines.size();i++) {
-			if (lines.get(i).getLinha().equalsIgnoreCase("VENCIMENTO")) {
-				return lines.get(i+1).getLinha();
-			}else if (lines.get(i).getLinha().equalsIgnoreCase("Vencimento:")) {
-				return lines.get(i+1).getLinha();
-			}
-		}
-		return "";
-	}
+	
 	
 	
 	public String getDataVencimentoCasan(List<Linhas> lines) {
@@ -1744,37 +1686,7 @@ public class BoletosGarantiaTotalController {
 		return "";
 	}
 	
-	public String getLinhaDigitavelCelesc(List<Linhas> lines, String tipo) {
-		String codigo = "";
-		boolean primeira   = false;
-		for(int i=0;i<lines.size();i++) {
-			if (lines.get(i).getLinha().equalsIgnoreCase("DOCUMENTO DE COBRANÇA")) {
-				if (primeira) {
-					String linha = lines.get(i+3).getLinha();
-					linha = linha.replace(" ", "");
-					return linha;
-				} else {
-					primeira = true;
-				}
-				
-			}
-		}
-		if (lines.size()>45) {
-			if (lines.get(45).getLinha().length()==57) {
-				codigo = lines.get(45).getLinha();
-				codigo = codigo.replace(" ", "");
-			}else if (lines.get(lines.size()-2).getLinha().length()==57) {
-				codigo = lines.get(lines.size()-2).getLinha();
-				codigo = codigo.replace(" ", "");
-			}
-		} else if (lines.get(lines.size()-2).getLinha().length()==57) {
-			codigo = lines.get(lines.size()-2).getLinha();
-			codigo = codigo.replace(" ", "");
-		} else {
-			
-		}
-		return codigo;
-	}
+	
 	
 	public String getReferenciaSamai(List<Linhas> lines, String tipo) {
 		if (tipo.equalsIgnoreCase("SAMAEAgrupada")) {
@@ -1828,6 +1740,18 @@ public class BoletosGarantiaTotalController {
     	}
     	return nome;
     }
+    
+    public Boletos lerPdfCelesc(List<Linhas> lines, String tipo) {
+    	LerPDFCelesc lerPDFCelesc = new LerPDFCelesc();
+		Boletos boleto = new Boletos();
+   	 	boleto.setValor(lerPDFCelesc.getValorCelesc(lines, tipo));
+		boleto.setLinhaDigitavel(lerPDFCelesc.getLinhaDigitavelCelesc(lines, tipo));
+		boleto.setDatavencimento(lerPDFCelesc.getDataVencimentoCelesc(lines, tipo));
+		boleto.setCnpj("08.336.783/0001-90");
+   	 	//boleto.setReferencia(lines.get(8).getLinha().substring(lines.get(8).getLinha().length()-7, lines.get(8).getLinha().length()));
+		boleto.setReferencia(lerPDFCelesc.getReferenciaCelesc(lines, tipo));
+		return boleto;
+	}
 	
 	
 	

@@ -36,6 +36,7 @@ import br.com.brognoli.api.model.CarneIPTU;
 import br.com.brognoli.api.model.Imoveladm;
 import br.com.brognoli.api.model.Linhas;
 import br.com.brognoli.api.model.Listapdf;
+import br.com.brognoli.api.model.Resposta;
 import br.com.brognoli.api.service.S3Service;
 import br.com.brognoli.api.util.Conversor;
 
@@ -94,6 +95,7 @@ public class IptuSjController {
     @Autowired
 	private S3Service s3Service;
     private String caminhoDir="\\\\192.168.1.58\\documentos\\centralfinanceira\\BOLETOS DE CONDOMÍNIOS\\iptusj\\";
+    //private String caminhoDir="c:\\logs\\julio\\";
     List<CarneIPTU> listaIPTU;
     
 	@PostMapping("/gerarlista")
@@ -143,23 +145,27 @@ public class IptuSjController {
 	}
 	
 	
-	@GetMapping("/lersite/{datavencimento}")
+	@GetMapping("/lersite/{datavencimento}/{repeticao}")
 	@ResponseStatus(HttpStatus.CREATED)
-	public ResponseEntity<List<Carne>> getSiteSJ(@PathVariable("datavencimento") String datavencimento) {
+	public ResponseEntity<List<Carne>> getSiteSJ(@PathVariable("datavencimento") String datavencimento, @PathVariable("repeticao") int repeticao) {
 		dataSetada = false;
 		String sdataVencimento = datavencimento.substring(6,8) + "/" +  datavencimento.substring(4,6) + "/" + datavencimento.substring(0,4);
 		//numeroLinha = 0;//Integer.parseInt(jTxtNumero.getText());
-		if (numeroLinha>0) {
-			numeroLinha++;
-		}
+		numeroLinha = 0;
 		contador = 0;
 		iniciarPagina();
-		for(int i = numeroLinha;i<listaCarne.size();i++){           
+		
+		for (int r=0;r<repeticao;r++) {
+		for(int i = numeroLinha;i<listaCarne.size();i++){    
+			String situacao ="ERRO";
 			try {
-				lerSitePMSJ(listaCarne.get(i).getCadastro(), sdataVencimento);
-				numeroLinha = i;
-				//jTxtNumero.setText(String.valueOf(i));
+				if ((listaCarne.get(i).getSituacao().equalsIgnoreCase("Carregado")) || (listaCarne.get(i).getSituacao().equalsIgnoreCase("ERRO"))|| (listaCarne.get(i).getSituacao().equalsIgnoreCase("ERRO PDF"))) {
+					situacao = lerSitePMSJ(listaCarne.get(i).getCadastro(), sdataVencimento, listaCarne.get(i).getInscricao());
+					listaCarne.get(i).setSituacao(situacao);
+					numeroLinha = i;
+				}
 			} catch (Exception ex) {
+				listaCarne.get(i).setSituacao(situacao);
 				System.out.println("Parou no Erro" + i);
 				System.out.println("Erro" + ex);
 				try {
@@ -174,6 +180,9 @@ public class IptuSjController {
 				//jTxtNumero.setText(String.valueOf(i));
 			}
 		}
+		}
+		driver.close();
+		driver.quit();
 		return ResponseEntity.ok(listaCarne);
 	}
     
@@ -200,7 +209,6 @@ public class IptuSjController {
         } catch (InterruptedException ex) {
             Logger.getLogger(IptuSjController.class.getName()).log(Level.SEVERE, null, ex);
         }
-        System.out.println(driver.getCurrentUrl());
         JavascriptExecutor jse = (JavascriptExecutor) driver;
         menu2Via = driver.findElement(By.xpath("//*[@id=\"modoAcesso\"]/div[1]/div[4]/div/div/div/a"));
         jse.executeScript("arguments[0].click();", menu2Via);
@@ -212,7 +220,8 @@ public class IptuSjController {
         }
     }
     
-    public void lerSitePMSJ(String cadastro, String datavencmento)throws Exception{
+    public String lerSitePMSJ(String cadastro, String datavencmento, String inscricao)throws Exception{
+    	String situacao = "";
         WebElement menu2Via = driver.findElement(By.id("mainForm:iImoveis"));
         Thread.sleep(1000);
         menu2Via.clear();
@@ -232,7 +241,8 @@ public class IptuSjController {
        if ((lista == null) || (lista.size() == 0)){
            temRegistro = false;
        } else if (lista.get(0).getText().contains("Não foi encontrado nenhum lançamento de IPTU para o contribuinte")) {
-           temRegistro = false;
+           situacao = "Não foi encontrado nenhum lançamento"; 
+    	   temRegistro = false;
        } else {
            temRegistro = true;
        }
@@ -256,7 +266,7 @@ public class IptuSjController {
                     listaCheck.get(0).click();     
                     botaoEnviar = driver.findElement(By.id("mainForm:emitir"));
                     botaoEnviar.click();
-                    salvarPDF(cadastro + "_20201");
+                    situacao = salvarPDF(inscricao + "_20201");
                 }  else {
                     listaCheck = driver.findElements(By.xpath("//*[@id=\"selectAll\"]"));
                     if ((listaCheck != null) && (listaCheck.size() == 2)){
@@ -266,7 +276,7 @@ public class IptuSjController {
                         listaCheck.get(0).click();     
                         botaoEnviar = driver.findElement(By.id("mainForm:emitir"));
                         botaoEnviar.click();
-                        salvarPDF(cadastro + "_20201");
+                        situacao = salvarPDF(inscricao + "_20201");
                         
                         menu2Via = driver.findElement(By.xpath("//*[@id=\"mainForm:P:0:F:0:resumo:1:selectedUnica\"]"));
                         menu2Via.click();
@@ -274,24 +284,36 @@ public class IptuSjController {
                         listaCheck.get(1).click();
                         botaoEnviar = driver.findElement(By.id("mainForm:emitir"));
                         botaoEnviar.click();
-                        salvarPDF(cadastro + "_20202");
-                        listaCheck.get(1).click();
+                        situacao = salvarPDF(inscricao + "_20202");
+                        //listaCheck.get(1).click();
                     }
                 }
             }else {
                 //check2019 1 
                 listaCheck = driver.findElements(By.xpath("//*[@id=\"mainForm:P:0:F:0:resumo:1:selectedUnica\"]"));
                 if ((listaCheck != null) || (listaCheck.size() > 0)){
-                    menu2Via = driver.findElement(By.xpath("//*[@id=\"mainForm:P:0:F:0:resumo:1:selectedUnica\"]"));
-                    menu2Via.click();
-                    listaCheck = driver.findElements(By.xpath("//*[@id=\"selectAll\"]"));
-                    listaCheck.get(1).click();
+                	List<WebElement> listaElementos = driver.findElements(By.className("parcela"));
+                	if (listaElementos.size()==3) {
+                		menu2Via = driver.findElement(By.xpath("//*[@id=\"mainForm:P:0:F:0:resumo:1:selectedUnica\"]"));
+                		menu2Via.click();
+                		listaCheck = driver.findElements(By.xpath("//*[@id=\"selectAll\"]"));
+                		listaCheck.get(1).click();
+                	} else {
+                		List<WebElement> listaPlots = driver.findElements(By.className("plots"));
+                		menu2Via = listaPlots.get(0);
+                		System.out.println(listaPlots.get(0).getAttribute("id"));
+                        menu2Via.click();
+                        listaCheck = driver.findElements(By.xpath("//*[@id=\"selectAll\"]"));
+                        //listaCheck.get(1).click();
+	
+                	}	
                     botaoEnviar = driver.findElement(By.id("mainForm:emitir"));
+                  
                     botaoEnviar.click();
-                    salvarPDF(cadastro + "_20191");
-                    listaCheck.get(1).click();
+                    situacao = salvarPDF(inscricao + "_20191");
+                    //listaCheck.get(1).click();
                 }
-                listaCheck = driver.findElements(By.xpath("//*[@id=\"selectAll\"]"));
+             /*   listaCheck = driver.findElements(By.xpath("//*[@id=\"selectAll\"]"));
                 if ((listaCheck != null) || (listaCheck.size() >= 0)){
                     menu2Via = driver.findElement(By.xpath("//*[@id=\"mainForm:P:0:F:0:resumo:0:selectedUnica\"]"));
                     menu2Via.click();
@@ -299,9 +321,9 @@ public class IptuSjController {
                     listaCheck.get(0).click();
                     botaoEnviar = driver.findElement(By.id("mainForm:emitir"));
                     botaoEnviar.click();
-                    salvarPDF(cadastro + "_20192");
+                    situacao = salvarPDF(inscricao + "_20191");
                     listaCheck.get(0).click();
-                }  
+                }  */
                 listaCheck = driver.findElements(By.xpath("//*[@id=\"selectAll\"]"));
                 if (listaCheck.size()==3) {
                     listaCheck.get(2).click();
@@ -312,8 +334,8 @@ public class IptuSjController {
                 }
                 botaoEnviar = driver.findElement(By.id("mainForm:emitir"));
                 botaoEnviar.click();
-                salvarPDF(cadastro + "_2020");
-            }     
+                situacao =  salvarPDF(inscricao + "_20191");
+            }    
             
             WebElement botaoNovaConsulta = driver.findElement(By.xpath("//*[@id=\"mainForm:novaConsulta\"]/span/input"));
             botaoNovaConsulta.click();
@@ -322,13 +344,25 @@ public class IptuSjController {
             
            //  driver.quit();
         } else {
-            //System.out.println(lista.get(0).getText());
+        	//situacao = "SEM BOLETO";
             WebElement botaoNovaConsulta = driver.findElement(By.xpath("//*[@id=\"mainForm:novaConsulta\"]/span/input"));
             botaoNovaConsulta.click();
         }
+        return situacao;
     }
     
-    public void salvarPDF(String cadastro){
+    public boolean validarUnica2(List<WebElement> listaPlost) {
+    	for (int i=0;i<listaPlost.size();i++) {
+    		System.out.println(listaPlost.get(i).getText());
+    		if (listaPlost.get(i).getText().contains("Unica2")) {
+    			return true;
+    		}
+    	}
+    	return false;
+    }
+    
+    public String salvarPDF(String inscricao){
+    	String situacao ="";
         //menu2Via.click();
         String winHableAtual;
         String winHandleBefore = driver.getWindowHandle();
@@ -342,32 +376,32 @@ public class IptuSjController {
         }
         boolean paginaImpressao = false;
         int contador = 0;
-        while ((paginaImpressao==false) && (contador<20)) {
-            System.out.println(driver.getCurrentUrl());
+        while ((paginaImpressao==false) && (contador<100)) {
+        	try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(IptuSjController.class.getName()).log(Level.SEVERE, null, ex);
+            }
            if (driver.getCurrentUrl().contains("reportasync.faces/anonymous_guia-iptu")) {
                paginaImpressao = true;
-               contador = 20;
+               contador = 100;
            } else {
                 contador ++;
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(IptuSjController.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                
            }
             
         }
         if (paginaImpressao) {
             winHableAtual = driver.getWindowHandle();
-            System.out.println(driver.getCurrentUrl());
-            baixarPDF(driver.getCurrentUrl(), cadastro);
+            baixarPDF(driver.getCurrentUrl(), inscricao);
             driver.switchTo().window(winHableAtual).close();
             driver.switchTo().window(winHandleBefore);
-            System.out.println(driver.getCurrentUrl());
+            return "PDF SALVO";
         }else {
             winHableAtual = driver.getWindowHandle();
             driver.switchTo().window(winHableAtual).close();
             driver.switchTo().window(winHandleBefore);
+            return "ERRO PDF";
         }
     }
     
@@ -408,26 +442,25 @@ public class IptuSjController {
 		boolean novo = false;
 		for (int i = 0; i < lines.size(); i++) {
 			String line = lines.get(i).getLinha();
-			if (novo) {
-				novo = false;
-				if (carne!=null) {
-					if (carne.getInscricao()!=null) {
-						if (carne.getInscricao().length()>0) {
-							listaIPTU.add(carne);
-						}
-					}
+			if (line.contains("Página: ")) {
+				if (carne.getLinhaDigitavel()!=null) {
+					listaIPTU.add(carne);
 				}
 			    carne = new CarneIPTU();
 			}
+			
 			if (line.equalsIgnoreCase("(-) Desconto")) {
-				carne.setLinhaDigitavel(lines.get(i + 1).getLinha());
-				carne.setLinhaDigitavel(carne.getLinhaDigitavel().replace(" ", ""));
-				carne.setLinhaDigitavel(carne.getLinhaDigitavel().replace(".", ""));
+				String linhaDigitavel = lines.get(i + 1).getLinha();
+				linhaDigitavel = linhaDigitavel.replace(" ", "");
+				linhaDigitavel = linhaDigitavel.replace(".", "");
+				carne.setLinhaDigitavel(linhaDigitavel);
 			}
+			
 			if (line.equalsIgnoreCase("IMÓVEL")) {
 				carne.setVencimento(lines.get(i - 1).getLinha());
 				carne.setParcela(lines.get(i + 3).getLinha());
 			}
+			
 			if (line.length() > 18) {
 				if (line.substring(0, 19).equalsIgnoreCase("VENCIMENTO ORIGINAL")) {
 					String valor = lines.get(i + 1).getLinha();
@@ -436,11 +469,7 @@ public class IptuSjController {
 					carne.setValor(Float.parseFloat(valor));
 				}
 			}
-			if (line.contains("Cidade: São José - SC - ")) {
-				carne.setInscricaoMascara(line.substring((line.length() - 20), line.length()));
-				carne.setInscricao(carne.getInscricaoMascara().replace(".", ""));
-				
-			}
+		
 			if (line.contains("ACRÉSCIMOS/JURO/MULTA")) {
 				String juros = line;
 				juros = juros.replace("ACRÉSCIMOS/JURO/MULTA", "");
@@ -453,6 +482,17 @@ public class IptuSjController {
 				
 				novo = true;
 				
+				String inscricao = "";
+				for (int l= 0;l<nomeArquivo.length();l++) {
+					if (nomeArquivo.charAt(l)!= '_') {
+						inscricao = inscricao + nomeArquivo.charAt(l);
+					}else {
+						l = nomeArquivo.length() + 100;
+					}
+				}
+				inscricao = inscricao.replace(".pdf", "");
+				carne.setInscricaoMascara(inscricao);
+				carne.setInscricao(inscricao.replace(".", ""));				
 			}
 			
 
@@ -460,16 +500,18 @@ public class IptuSjController {
 
 	}
 	
-	@PostMapping("/upload")
+	@GetMapping("/exportarexcel")
 	@ResponseStatus(HttpStatus.CREATED)
-	public ResponseEntity<Void> uploadPDFSimplficada(@Valid @RequestBody List<Listapdf> listapdf) {
+	public ResponseEntity<File> UploadExportarExcel() {
 		listaIPTU = new ArrayList<CarneIPTU>();
-		for (Listapdf nomePdf : listapdf) {
-			
-			System.out.println(nomePdf.getNome());
+		Resposta r = new Resposta();
+		r.setResultado("erro");
+		File fileDiretorio = new File(caminhoDir); 
+		File[] files = fileDiretorio.listFiles();
+		for (File file : files) {
 			List<Linhas> lines = new ArrayList<Linhas>();
 			try {
-				PdfReader reader = new PdfReader(caminhoDir + nomePdf.getNome());
+				PdfReader reader = new PdfReader(caminhoDir + file.getName());
 				PdfReaderContentParser parser = new PdfReaderContentParser(reader);
 				lines = new ArrayList<Linhas>();
 				PrintWriter out = new PrintWriter(new FileOutputStream(new File("c:\\logs\\texto.txt")));
@@ -496,9 +538,7 @@ public class IptuSjController {
 				e1.printStackTrace();
 			}
 			try {
-				gerarDadosPDFSJ(lines, nomePdf.getNome());
-				
-				
+				gerarDadosPDFSJ(lines, file.getName());
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -507,13 +547,27 @@ public class IptuSjController {
 		if (listaIPTU != null) {
 			if (listaIPTU.size() > 0) {
 				ExportarExcel ex = new ExportarExcel();
-				ex.exportarResultadoExcelSJ(listaIPTU);
+				ex.exportarResultadoExcelSJ(listaIPTU, caminhoDir, listaCarne);
 				File file = ex.getFile();
 				URI uri = s3Service.uploadFile(file);
-				return ResponseEntity.created(uri).build();
+				r.setResultado("ok");
+				return ResponseEntity.ok(file);
 			}
 		}
-		return null;
+		return ResponseEntity.ok(null);
 	}
+	
+	public String getLinhaDigitavel(List<Linhas> lines) {
+		String linhaDigitavel= "";
+		for (int i = 0; i < lines.size(); i++) {
+			String line = lines.get(i).getLinha();
+			
+		}
+		return linhaDigitavel;
+	}
+	
+	
+	
+	
 
 }
