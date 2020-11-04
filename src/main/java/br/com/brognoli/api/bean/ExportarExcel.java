@@ -8,21 +8,19 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.pdfbox.contentstream.operator.state.Concatenate;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
-import org.apache.poi.xssf.usermodel.XSSFCellStyle;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import br.com.brognoli.api.model.Boletos;
 import br.com.brognoli.api.model.Boletoseguro;
 import br.com.brognoli.api.model.Carne;
 import br.com.brognoli.api.model.CarneIPTU;
+
+import br.com.brognoli.api.model.CelescDados;
 import br.com.brognoli.api.model.Fornecedor;
 import br.com.brognoli.api.model.Resumo;
 import br.com.brognoli.api.util.Conversor;
@@ -308,7 +306,7 @@ public class ExportarExcel {
 
 	}
 	
-public void gerarOp(List<Boletos> listaBoletos) {
+public void gerarOp(List<Boletos> listaBoletos, String caminhoDir) {
 		
 		
 		
@@ -319,9 +317,9 @@ public void gerarOp(List<Boletos> listaBoletos) {
 		HSSFCellStyle style =  workbook.createCellStyle();
 		style.setDataFormat(workbook.createDataFormat().getFormat("0.00"));
 		style.setAlignment(HorizontalAlignment.RIGHT);
-
 		try {
-			file = new File("GarantiaTotalS.xls");
+			String caminhoExcel = "C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\extracao\\"; 
+			file = new File(caminhoExcel + "extracaoBoletos.xls");
 			fos = new FileOutputStream(file);
 			int i = 0;
 			HSSFRow row = gs.createRow(i);
@@ -417,7 +415,8 @@ public void gerarOp(List<Boletos> listaBoletos) {
 					// TODO: handle exception
 				}
 			}
-
+			
+			
 			workbook.write(fos);
 
 		} catch (Exception e) {
@@ -433,6 +432,161 @@ public void gerarOp(List<Boletos> listaBoletos) {
 		}
 
 	}
+
+public void gerarOpCelesc(List<Boletos> listaBoletos, String caminhoDir, List<CelescDados> listaCelescDados) {
+	
+	
+	
+	HSSFWorkbook workbook = new HSSFWorkbook();
+	HSSFSheet gs = workbook.createSheet("Eventos Valores");
+	HSSFSheet op = workbook.createSheet("OP");
+	HSSFSheet res = workbook.createSheet("Resultado");
+	FileOutputStream fos = null;
+	HSSFCellStyle style =  workbook.createCellStyle();
+	style.setDataFormat(workbook.createDataFormat().getFormat("0.00"));
+	style.setAlignment(HorizontalAlignment.RIGHT);
+
+	try {
+		if (caminhoDir.length()==0) {
+			file = new File("CelescOP.xls");
+		} else file = new File(caminhoDir + "celesc.xls");
+		fos = new FileOutputStream(file);
+		int i = 0;
+		HSSFRow row = gs.createRow(i);
+
+		row.createCell(0).setCellValue("Competencia");
+		row.createCell(1).setCellValue("Data vencimento");
+		row.createCell(2).setCellValue("Linha digitável");
+		row.createCell(3).setCellValue("CNPJ");
+		row.createCell(4).setCellValue("Nome arquivo");
+		row.createCell(5).setCellValue("Tipo");
+		for (Boletos c : listaBoletos) {
+			i++;
+			row = gs.createRow(i);
+			row.createCell(0).setCellValue(c.getReferencia());
+			row.createCell(1).setCellValue(c.getDatavencimento());
+			row.createCell(2).setCellValue(c.getLinhaDigitavel());
+			row.createCell(3).setCellValue(c.getCnpj());
+			if (c.getNomearquivo()!=null) {
+				String nomeArquivo = c.getNomearquivo();
+				nomeArquivo = nomeArquivo.replace(".pdf", "");
+				row.createCell(4).setCellValue(nomeArquivo);
+			}else {
+				row.createCell(4).setCellValue("");
+			}
+					
+			if (c.getTipo().equalsIgnoreCase("Celesc1")) {
+				row.createCell(5).setCellValue("Celesc");
+			} else row.createCell(5).setCellValue(c.getTipo());
+		}
+		
+		i = 0;
+		
+		
+		row = op.createRow(i);
+		
+		row.createCell(0).setCellValue("Data Vencimento");
+		row.createCell(1).setCellValue("Imovel");
+		row.createCell(2).setCellValue("Conta");
+		row.createCell(3).setCellValue("Agencia");
+		row.createCell(4).setCellValue("Valor");
+		row.createCell(5).setCellValue("Evento");
+		row.createCell(6).setCellValue("Historico");
+		row.createCell(7).setCellValue("Complemento");
+		row.createCell(8).setCellValue("Cód.Barras");
+		row.createCell(9).setCellValue("Fornecedor");
+		row.createCell(10).setCellValue("Gerar");
+		Conversor conversor = new Conversor();
+		for (Boletos c : listaBoletos) {
+			try {
+			i++;
+			String cb = converterCodigoBarras(c.getTipo(), c.getLinhaDigitavel());
+			String valor ="0,00";
+			String dataVencimento = "";
+			
+				
+			DecimalFormat df = new DecimalFormat("0.00");
+			df.setMaximumFractionDigits(2);
+			if (c.getTipo().equalsIgnoreCase("Condominio")) {
+				if (cb.length()>20) {
+					float fvalor = getValor(cb);
+					valor = df.format(fvalor);
+					dataVencimento = getDataVencimento(cb);
+				}
+			}else {
+				if (c.getValor()!=null) {
+					Float fvalor = conversor.formatarStringfloat(c.getValor());
+					valor = df.format(fvalor);
+					dataVencimento = c.getDatavencimento();
+				}
+			}
+			
+			
+			row = op.createRow(i);
+			row.createCell(0).setCellValue(dataVencimento);
+			row.createCell(1).setCellValue(c.getCodigoImovel());
+			row.createCell(2).setCellValue("");
+			row.createCell(3).setCellValue("");
+			row.createCell(4).setCellValue(valor);
+			row.getCell(4).setCellStyle(style);
+			row.createCell(5).setCellValue("");
+			row.createCell(6).setCellValue("");
+			row.createCell(7).setCellValue("");
+			row.createCell(8).setCellValue(cb);
+			if (c.getCnpj().length()==18) {
+				row.createCell(9).setCellValue(getFornecedorCNPJ(c.getCnpj()));
+			} else row.createCell(9).setCellValue(0);
+			row.createCell(10).setCellValue("S");
+			}catch (Exception e) {
+				// TODO: handle exception
+			}
+		}
+		
+		i = 0;
+		
+		
+		row = res.createRow(i);
+		
+		row.createCell(0).setCellValue("Imovel");
+		row.createCell(1).setCellValue("Nome");
+		row.createCell(2).setCellValue("CPF");
+		row.createCell(3).setCellValue("UC");
+		row.createCell(4).setCellValue("Data Corte");
+		row.createCell(5).setCellValue("Pedido desligamento");
+		row.createCell(6).setCellValue("Situação");
+		row.createCell(7).setCellValue("Resultado");
+		
+		for (CelescDados c : listaCelescDados) {
+			try {
+			i++;
+			row = res.createRow(i);
+			row.createCell(0).setCellValue(c.getImovel());
+			row.createCell(1).setCellValue(c.getNome());
+			row.createCell(2).setCellValue(c.getCpf());
+			row.createCell(3).setCellValue(c.getCodigo());
+			row.createCell(4).setCellValue(c.getDataCorte());
+			row.createCell(5).setCellValue(c.getPedidodesligamento());
+			row.createCell(6).setCellValue(c.getSituacao());
+			row.createCell(7).setCellValue(c.getResultado());
+			}catch (Exception e) {
+				// TODO: handle exception
+			}
+		}
+		workbook.write(fos);
+
+	} catch (Exception e) {
+		
+		System.out.println(e.getMessage());
+	}
+
+	try {
+		fos.flush();
+		fos.close();
+	} catch (Exception e) {
+		e.printStackTrace();
+	}
+
+}
 
 		public Float calcularValorTotal(List<Resumo> listaResumo) {
 			Float valor = 0.0f;
@@ -465,6 +619,7 @@ public void gerarOp(List<Boletos> listaBoletos) {
         HSSFWorkbook workbook = new HSSFWorkbook();
 		HSSFSheet dam = workbook.createSheet("DAM-PM");
 		HSSFSheet res = workbook.createSheet("Resultado");
+		int contador=0;
 		FileOutputStream fos = null;
 		try {
 			file = new File(caminhoDir + "IPTU_SJ.xls");
@@ -484,7 +639,6 @@ public void gerarOp(List<Boletos> listaBoletos) {
                        
 			i++;
 			
-			if (listaCarne!=null) {
 				for (CarneIPTU c : listaIPTU) {
 					row = dam.createRow(i);
 					row.createCell(0).setCellValue(c.getInscricao());
@@ -498,10 +652,12 @@ public void gerarOp(List<Boletos> listaBoletos) {
 					row.createCell(8).setCellValue(c.getCodigoBarras());
 					row.createCell(9).setCellValue(c.getNomearquivo());
 					i++;
+					contador++;
+					System.out.println(contador);
 				}
-			}
 			
-			
+			if (listaCarne!=null) {
+					
 			i= 0;
 			row = res.createRow(i);
 			
@@ -510,16 +666,18 @@ public void gerarOp(List<Boletos> listaBoletos) {
 	         row.createCell(9).setCellValue("Situação");
 	                       
 			 i++;
-			 
+			 contador = 0;
 			 for (Carne carne : listaCarne) {
+				 contador++;
 				 row = res.createRow(i);
 				 row.createCell(0).setCellValue(carne.getInscricao());
 				 row.createCell(1).setCellValue(carne.getCadastro());
 				 row.createCell(2).setCellValue(carne.getSituacao());
 				 i++;
+				 System.out.println(contador);
 			 }
 			
-			
+			}
 			
 			workbook.write(fos);
 
@@ -653,7 +811,7 @@ public void gerarOp(List<Boletos> listaBoletos) {
 	
 	
 	
-	
+		
 	
 
 }

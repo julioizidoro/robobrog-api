@@ -29,6 +29,7 @@ import com.itextpdf.text.pdf.parser.SimpleTextExtractionStrategy;
 import com.itextpdf.text.pdf.parser.TextExtractionStrategy;
 
 import br.com.brognoli.api.bean.Cobrancaresultado;
+import br.com.brognoli.api.bean.Diretorios;
 import br.com.brognoli.api.bean.ExportarExcel;
 import br.com.brognoli.api.model.Boletos;
 import br.com.brognoli.api.model.Carne;
@@ -159,9 +160,15 @@ public class IptuSjController {
 		for(int i = numeroLinha;i<listaCarne.size();i++){    
 			String situacao ="ERRO";
 			try {
+				
 				if ((listaCarne.get(i).getSituacao().equalsIgnoreCase("Carregado")) || (listaCarne.get(i).getSituacao().equalsIgnoreCase("ERRO"))|| (listaCarne.get(i).getSituacao().equalsIgnoreCase("ERRO PDF"))) {
-					situacao = lerSitePMSJ(listaCarne.get(i).getCadastro(), sdataVencimento, listaCarne.get(i).getInscricao());
-					listaCarne.get(i).setSituacao(situacao);
+					File f = new File(caminhoDir + listaCarne.get(i).getInscricao() + "_20201.pdf");
+					if (!f.exists()) {
+						situacao = lerSitePMSJ(listaCarne.get(i).getCadastro(), sdataVencimento, listaCarne.get(i).getInscricao());
+						listaCarne.get(i).setSituacao(situacao);
+					}else {
+						listaCarne.get(i).setSituacao("PDF SALVO");
+					}
 					numeroLinha = i;
 				}
 			} catch (Exception ex) {
@@ -229,13 +236,20 @@ public class IptuSjController {
         menu2Via = driver.findElement(By.id("mainForm:btIImoveis"));
         menu2Via.click();
         Thread.sleep(1000);
-        if (!dataSetada){
-            WebElement campoData = driver.findElement(By.xpath("//*[@id=\"mainForm:data\"]"));
-            campoData.clear();
-            campoData.sendKeys(datavencmento);
-            dataSetada = true;
+        if (!dataSetada) {
+        	WebElement campoData = driver.findElement(By.xpath("//*[@id=\"mainForm:data\"]"));
+        	campoData.clear();
+        	campoData.sendKeys(datavencmento);
+        	String dataCampo = campoData.getAttribute("value");
+        	while (!datavencmento.equalsIgnoreCase(dataCampo)) {
+        		campoData.clear();
+        		campoData.sendKeys(datavencmento);
+        		dataCampo = campoData.getAttribute("value");
+        	}
+        	dataSetada = true;
+        	campoData = driver.findElement(By.xpath("//*[@id=\"mainForm:btAtualizaVlr\"]/div/div/label/strong"));
+        	campoData.click();
         }
-       
         List<WebElement> lista = driver.findElements(By.xpath("//*[@id=\"mainForm:master:messageSection:warn\"]"));
        boolean temRegistro = false;
        if ((lista == null) || (lista.size() == 0)){

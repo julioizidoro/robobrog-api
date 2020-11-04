@@ -148,6 +148,7 @@ public class CobrancaController {
 			webClient.getOptions().setJavaScriptEnabled(false);
 			webClient.getOptions().setCssEnabled(false);
 			webClient.getOptions().setTimeout(10000000);
+			webClient.getOptions().setUseInsecureSSL(true);
 			java.util.logging.Logger.getLogger("com.gargoylesoftware.htmlunit").setLevel(java.util.logging.Level.OFF);
 			java.util.logging.Logger.getLogger("org.apache.http").setLevel(java.util.logging.Level.OFF);
 			HtmlPage pagina = null;

@@ -613,7 +613,7 @@ public class BoletosGarantiaTotalController {
 			if (listaBoletos.size() > 0) {
 				ExportarExcel ex = new ExportarExcel();
 				//ex.gerarGTSimpificada(listaBoletos);
-				ex.gerarOp(listaBoletos);
+				ex.gerarOp(listaBoletos, "");
 				File file = ex.getFile();
 				URI uri = s3Service.uploadFile(file);
 				r.setResultado("ok");

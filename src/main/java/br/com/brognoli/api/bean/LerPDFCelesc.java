@@ -32,12 +32,13 @@ import br.com.brognoli.api.model.Resposta;
 
 public class LerPDFCelesc {
 	
-	private String caminhoDir="\\\\192.168.1.58\\documentos\\centralfinanceira\\BOLETOS DE CONDOMÍNIOS\\iptusj\\";
+	private String caminhoDir= "";
 	
-	public Boletos carregarPDF(CelescFatura fatura, String nomePasta) {
+	public Boletos carregarPDF(CelescFatura fatura, String diretorio) {
+		caminhoDir = diretorio;
 		Boletos boletos = new Boletos();
 		String tipo ="";
-			String fileName = caminhoDir + nomePasta + "\\" + fatura.getNumero(); 
+			String fileName = caminhoDir + fatura.getNumero() + ".pdf"; 
 			PdfReader reader;
 			List<Linhas> lines = new ArrayList<Linhas>();
 			try {
@@ -72,20 +73,20 @@ public class LerPDFCelesc {
 				 if (tipo.equalsIgnoreCase("CelescSegundaVia")) {
 					Boletos b = lerPdfCelesc(lines, tipo);
 					b.setCodigoImovel("0");
-					b.setNomearquivo("");
+					b.setNomearquivo(fatura.getNumero() + ".pdf");
 					b.setTipo(tipo);
 					return b;
 				}else if (tipo.equalsIgnoreCase("CelescAgrupada")) {
 					Boletos b = lerPdfCelesc(lines, tipo);
 					b.setCodigoImovel("0");
-					b.setNomearquivo("");
+					b.setNomearquivo(fatura.getNumero() + ".pdf");
 					b.setNomearquivo(b.getNomearquivo().replace(".pdf", ""));
 					b.setTipo(tipo);
 					return b;
 				}else if (tipo.equalsIgnoreCase("CelescNaoVencida")) {
 					Boletos b = lerPdfCelesc(lines, tipo);
 					b.setCodigoImovel("0");
-					b.setNomearquivo("");
+					b.setNomearquivo(fatura.getNumero() + ".pdf");
 					b.setNomearquivo(b.getNomearquivo().replace(".pdf", ""));
 					b.setTipo(tipo);
 					return b;
@@ -138,11 +139,8 @@ public class LerPDFCelesc {
 			}
 		} else if (tipo.equalsIgnoreCase("CelescSegundaVia")) {
 			for(int i=0;i<lines.size();i++) {
-				if (lines.get(i).getLinha().length()>18) {
-					if (lines.get(i).getLinha().substring(0,11).equalsIgnoreCase("REFERÊNCIA:")) {
-						referencia = lines.get(i).getLinha().substring(12,19);
-						return referencia;
-					}
+				if (lines.get(i).getLinha().equals("Energia Elétrica")) {
+					referencia = lines.get(i+1).getLinha().substring(lines.get(i+1).getLinha().length()-7, lines.get(i+1).getLinha().length());
 				}
 				
 			}
@@ -226,5 +224,6 @@ public class LerPDFCelesc {
 		}
 		return codigo;
 	}
+	
 
 }

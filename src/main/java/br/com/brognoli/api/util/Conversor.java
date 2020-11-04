@@ -59,6 +59,15 @@ public class Conversor {
 		return mesAno;
 	}
 	
+	public String getDiaMesAno(Date data) {
+		String sData = ConvercaoDataBR(data);
+		String dia = sData.substring(0,2);
+		String mes = sData.substring(3,5);
+		String ano = sData.substring(6,10);
+		String diaMesAno = String.valueOf(ano) + "_" + String.valueOf(mes) + "_" + String.valueOf(dia);
+		return diaMesAno;
+	}
+	
 	
 	public Float formatarStringfloat(String valor) {
 		String novoValor = "";

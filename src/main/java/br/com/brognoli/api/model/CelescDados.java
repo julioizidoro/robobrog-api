@@ -17,8 +17,10 @@ public class CelescDados {
 	private String situacao;
 	private String dataCorte;
 	private String pedidodesligamento;
+	private int imovel;
 	private List<CelescFatura> listaFatura;
 	private List<CelescHistorico> listaHistorico;
+	private String resultado;
 	
 	public String getNome() {
 		return nome;
@@ -80,12 +82,8 @@ public class CelescDados {
 	public void setEmailfatura(String emailfatura) {
 		this.emailfatura = emailfatura;
 	}
-	public String getSituacao() {
-		return situacao;
-	}
-	public void setSituacao(String situacao) {
-		this.situacao = situacao;
-	}
+	
+	
 	public String getDataCorte() {
 		return dataCorte;
 	}
@@ -99,7 +97,12 @@ public class CelescDados {
 		this.listaFatura = listaFatura;
 	}
 	
-	
+	public int getImovel() {
+		return imovel;
+	}
+	public void setImovel(int imovel) {
+		this.imovel = imovel;
+	}
 	public String getPedidodesligamento() {
 		return pedidodesligamento;
 	}
@@ -111,6 +114,20 @@ public class CelescDados {
 	}
 	public void setListaHistorico(List<CelescHistorico> listaHistorico) {
 		this.listaHistorico = listaHistorico;
+	}
+	
+	
+	public String getSituacao() {
+		return situacao;
+	}
+	public void setSituacao(String situacao) {
+		this.situacao = situacao;
+	}
+	public String getResultado() {
+		return resultado;
+	}
+	public void setResultado(String resultado) {
+		this.resultado = resultado;
 	}
 	@Override
 	public int hashCode() {
