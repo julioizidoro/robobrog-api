@@ -370,8 +370,10 @@ public class CelescController {
 						LerPDFCelesc lerPdfCelesc = new LerPDFCelesc();
 						for(int l=0;l<listaFatura.size();l++) {
 							Boletos b = lerPDFCelesc.carregarPDF(listaFatura.get(l), caminhoDir);
-							b.setCodigoImovel(String.valueOf(novaLista.get(i).getImovel()));
-							listaBoletos.add(b);
+							if (b!=null) {
+								b.setCodigoImovel(String.valueOf(novaLista.get(i).getImovel()));
+								listaBoletos.add(b);
+							}
 						}
 					}
 				}
@@ -434,9 +436,15 @@ public class CelescController {
 				driver.get("https://agenciaweb.celesc.com.br/AgenciaWeb/autenticar/escolherUC.do");
 				WebElement inputUnidade = driver.findElement(By.name("codUnCons"));
 				inputUnidade.sendKeys(unidade);
-				WebElement botaoEntrar = driver.findElement(By.xpath("//*[@id=\"pg\"]/table[2]/tbody/tr[2]/td/form/table/tbody/tr[2]/td[2]/div/input"));
-				
-				botaoEntrar.click();
+				WebElement botaoEntrar = null;
+				try {
+					botaoEntrar = driver.findElement(By.xpath("//*[@id=\"fundoPrincipalLogin\"]/table/tbody/tr/td/table/tbody/tr/td/form/table/tbody/tr[2]/td[2]/div/input"));
+				} catch (Exception e) {
+					botaoEntrar = driver.findElement(By.xpath("//*[@id=\"pg\"]/table[2]/tbody/tr[2]/td/form/table/tbody/tr[2]/td[2]/div/input"));
+				}
+				if (botaoEntrar!=null) {
+					botaoEntrar.click();
+				}
 			} else {
 			WebElement inputUnidade = driver.findElement(By.name("codUnCons"));
 			inputUnidade.sendKeys(unidade);
