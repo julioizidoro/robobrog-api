@@ -89,9 +89,15 @@ public class CelescController {
 		String diretorio = "C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\celesc\\";
 		celescDados = new CelescDados();
 		if (iniciarPagina()) {
-			getUnidade(unidade, opcao, true, diretorio, false);
+			getUnidade(unidade, opcao, true, diretorio, false, false);
 			return ResponseEntity.ok(celescDados);
 		} else  {
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			driver.close();
 			driver.quit();
 			return ResponseEntity.ok(null);
@@ -105,10 +111,17 @@ public class CelescController {
 	public void getboeltos() {
 		String diretorio = "C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\celesc\\";
 		try {
-			getPDF("debito", 0, diretorio);
+			getPDF("debito", 0, diretorio, false);
+			Thread.sleep(5000);
 			driver.close();
 			driver.quit();
 		}catch (Exception e) {
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 			driver.close();
 			driver.quit();
 		}
@@ -120,7 +133,7 @@ public class CelescController {
 	public void getHpboeltos() {
 		String diretorio = "C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\celesc\\";
 		try {
-			getPDF("hp", -1, diretorio);
+			getPDF("hp", -1, diretorio, false);
 			driver.close();
 			driver.quit();
 		} catch (Exception e) {
@@ -139,13 +152,18 @@ public class CelescController {
 			if (celescDados.getListaHistorico().size()>0) {
 				String unidade = celescDados.getCodigo();
 				if (iniciarPagina()) {
-					getUnidade(unidade, "hp", false, diretorio, false);
+					try {
+					getUnidade(unidade, "hp", false, diretorio, false, false);
 					WebElement menu2Via = driver.findElement(By.xpath("//*[@id=\"mn\"]/table/tbody/tr[16]/td/a"));
 					menu2Via.click();
-					getPDF("hp", posicao, diretorio);
+					getPDF("hp", posicao, diretorio, false);
 					driver.close();
 					driver.quit();
 					res.setResultado("OK");
+					} catch (Exception e) {
+						driver.close();
+						driver.quit();
+					}
 				}else {
 					driver.close();
 					driver.quit();
@@ -171,7 +189,7 @@ public class CelescController {
         System.setProperty("webdriver.chrome.driver", "C:/Logs/drive/chromedriver.exe");
         ChromeOptions options = new ChromeOptions();
         options.setExperimentalOption("prefs", prefs);
-
+        options.addArguments("--headless");
         options.addArguments("start-maximized");
         options.addArguments("disable-infobars");
         options.addArguments("--disable-extensions");
@@ -214,15 +232,21 @@ public class CelescController {
 		celescDados = new CelescDados();
 		String diretorio = "C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\celesc\\";
 		if (iniciarPagina()) {
-			getUnidade(unidade, "desligamento", true, diretorio, false);
-			driver.close();
-			driver.quit();
-			return ResponseEntity.ok(celescDados);
+			try {
+				getUnidade(unidade, "desligamento", true, diretorio, false, false);
+				driver.close();
+				driver.quit();
+				return ResponseEntity.ok(celescDados);
+			}catch (Exception e) {
+				driver.close();
+				driver.quit();
+			}
 		} else  {
 			driver.close();
 			driver.quit();
 			return ResponseEntity.ok(null);
 		}
+		return ResponseEntity.ok(null);
 		
 	}
 	
@@ -272,11 +296,19 @@ public class CelescController {
 				case 0:
 					if (cel.getCellTypeEnum() == CellType.STRING) {
 						String dados = cel.getStringCellValue();
+						celescDados.setImovel(Integer.parseInt(dados));
+					} else if (cel.getCellTypeEnum() == CellType.NUMERIC) {
+						int dados = (int) cel.getNumericCellValue();
+						celescDados.setImovel(dados);
+					}
+				case 1:
+					if (cel.getCellTypeEnum() == CellType.STRING) {
+						String dados = cel.getStringCellValue();
 						dados = dados.replace("*", "");
 						celescDados.setCodigo(dados);
 					} else if (cel.getCellTypeEnum() == CellType.NUMERIC) {
 						int dados = (int) cel.getNumericCellValue();
-						celescDados.setImovel(dados);
+						celescDados.setCodigo(String.valueOf(dados));
 					}
 					
 				}
@@ -314,37 +346,53 @@ public class CelescController {
 				} else if (listaCelescDados.get(i).getResultado().equalsIgnoreCase("UC INVÁLIDA")) {
 					novaLista.add(listaCelescDados.get(i));
 				} else if (listaCelescDados.get(i).getResultado().equalsIgnoreCase("CARREGADO")) {
+					
+					
 					if (driverOpen) {
-						getUnidade(listaCelescDados.get(i).getCodigo(), "debito", true, caminhoDir, driverOpen);
+						getUnidade(listaCelescDados.get(i).getCodigo(), "debito", true, caminhoDir, driverOpen, true);
 						driverOpen = true;
 						celescDados.setCodigo(listaCelescDados.get(i).getCodigo());
 						celescDados.setImovel(listaCelescDados.get(i).getImovel());
 						novaLista.add(celescDados);
 					} else {
 						if (iniciarPagina()) {
-							getUnidade(listaCelescDados.get(i).getCodigo(), "debito", true, caminhoDir, driverOpen);
+							try {
+							getUnidade(listaCelescDados.get(i).getCodigo(), "debito", true, caminhoDir, driverOpen, true);
 							driverOpen = true;
 							celescDados.setCodigo(listaCelescDados.get(i).getCodigo());
 							celescDados.setImovel(listaCelescDados.get(i).getImovel());
 							novaLista.add(celescDados);
+							}catch (Exception e) {
+								driver.close();
+								driver.quit();
+							}
 						} else {
+							if (driverOpen) {
+								driver.close();
+								driver.quit();
+							}	
 							driverOpen = false;
 						}
 					}
 				} else if (listaCelescDados.get(i).getResultado().equalsIgnoreCase("ERRO")) {
 					if (driverOpen) {
-						getUnidade(listaCelescDados.get(i).getCodigo(), "debito", true, caminhoDir, driverOpen);
+						getUnidade(listaCelescDados.get(i).getCodigo(), "debito", true, caminhoDir, driverOpen, true);
 						celescDados.setCodigo(listaCelescDados.get(i).getCodigo());
 						driverOpen = true;
 						celescDados.setImovel(listaCelescDados.get(i).getImovel());
 						novaLista.add(celescDados);
 					} else {
 						if (iniciarPagina()) {
-							getUnidade(listaCelescDados.get(i).getCodigo(), "debito", true, caminhoDir, driverOpen);
+							try {
+							getUnidade(listaCelescDados.get(i).getCodigo(), "debito", true, caminhoDir, driverOpen, true);
 							celescDados.setCodigo(listaCelescDados.get(i).getCodigo());
 							driverOpen = true;
 							celescDados.setImovel(listaCelescDados.get(i).getImovel());
 							novaLista.add(celescDados);
+							}catch (Exception e) {
+								driver.close();
+								driver.quit();
+							}
 						} else {
 							driverOpen = false;
 						}
@@ -372,6 +420,7 @@ public class CelescController {
 							Boletos b = lerPDFCelesc.carregarPDF(listaFatura.get(l), caminhoDir);
 							if (b!=null) {
 								b.setCodigoImovel(String.valueOf(novaLista.get(i).getImovel()));
+								b.setUC(novaLista.get(i).getCodigo());
 								listaBoletos.add(b);
 							}
 						}
@@ -403,7 +452,7 @@ public class CelescController {
         System.setProperty("webdriver.chrome.driver", "C:/Logs/drive/chromedriver.exe");
         ChromeOptions options = new ChromeOptions();
         options.setExperimentalOption("prefs", prefs);
-
+        options.addArguments("--headless");
         options.addArguments("start-maximized");
         options.addArguments("disable-infobars");
         options.addArguments("--disable-extensions");
@@ -430,7 +479,7 @@ public class CelescController {
     }
 	
 		
-	public void getUnidade(String unidade, String opcao, boolean consHP, String diretorio, boolean driverOpen) {
+	public void getUnidade(String unidade, String opcao, boolean consHP, String diretorio, boolean driverOpen, boolean op) {
 		try {
 			if (driverOpen) {
 				driver.get("https://agenciaweb.celesc.com.br/AgenciaWeb/autenticar/escolherUC.do");
@@ -455,17 +504,17 @@ public class CelescController {
 		
             getDataCorte();
             if (opcao.equalsIgnoreCase("2via")) {
-            	get2ViaBoleto(diretorio);
+            	get2ViaBoleto(diretorio, op);
             	getDesligamento();
             } else if (opcao.equalsIgnoreCase("debito")) {
             	if (consHP) {
             		getDesligamento();
-            		getDebitos(diretorio);
+            		getDebitos(diretorio, op);
             	}
             } else if (opcao.equalsIgnoreCase("hp")) {
             	if (consHP) {
             		getDesligamento();
-            		getHistoricoPagamento(diretorio);
+            		getHistoricoPagamento(diretorio, op);
             	}
             }  else if (opcao.equalsIgnoreCase("desligamento")) {
             	getDesligamento();
@@ -505,7 +554,7 @@ public class CelescController {
 
 	}
 	
-	public void get2ViaBoleto(String diretorio) {
+	public void get2ViaBoleto(String diretorio, boolean op) {
 		List<HtmlElement> elements = pagina.getByXPath("//tr[@class='textoGeral']");
 		WebElement menu2Via = driver.findElement(By.xpath("//*[@id=\"mn\"]/table/tbody/tr[3]/td/a"));
 		menu2Via.click();
@@ -541,13 +590,13 @@ public class CelescController {
 		}
 		if (celescDados.getListaFatura()!=null) {
 			if (celescDados.getListaFatura().size()>0) {
-				getPDF("2Via",0, diretorio);
+				getPDF("2Via",0, diretorio, op);
 			}
 		}
 		
 	}
 	
-	public void getDebitos(String diretorio) {
+	public void getDebitos(String diretorio, boolean op) {
 		WebElement menu2Via = driver.findElement(By.xpath("//*[@id=\"mn\"]/table/tbody/tr[4]/td/a"));
 		menu2Via.click();
 		List<WebElement> listaElementos = driver.findElements(By.className("textoGeral"));
@@ -586,7 +635,7 @@ public class CelescController {
 		
 		 if (celescDados.getListaFatura()!=null) { 
 			 if (celescDados.getListaFatura().size()>0) { 
-				 getPDF("debito", 0, diretorio); 
+				 getPDF("debito", 0, diretorio, op); 
 			 }else {
 				celescDados.setResultado("SEM PDF");
 			 }
@@ -597,7 +646,7 @@ public class CelescController {
 	
 	
 	
-	public void baixarPDF(WebClient webClient, String paginaTipo, String diretorio) {
+	public void baixarPDF(WebClient webClient, String paginaTipo, String diretorio, boolean op) {
 		int linha =0;
 		int tab = 2;
 		driver.get(paginaTipo);
@@ -618,7 +667,11 @@ public class CelescController {
 		}
 		for (int i=0;i<this.celescDados.getListaFatura().size();i++) {
 			try {
-				String filename = diretorio + this.celescDados.getListaFatura().get(i).getNumero() + ".pdf";
+				String filename = diretorio;
+				if (op) {
+					filename = filename + this.celescDados.getImovel() + '_';
+				}
+				filename = filename + this.celescDados.getListaFatura().get(i).getNumero() + ".pdf";
 				File file = new File(filename);
 				InputStream is;
 				driver.get(celescDados.getListaFatura().get(i).getUrl());
@@ -744,7 +797,7 @@ public class CelescController {
 	
 	
 	
-	public void getPDF(String tipo, int posicao, String diretorio) {
+	public void getPDF(String tipo, int posicao, String diretorio, boolean op) {
 
 		try {
 			webClient = new WebClient(BrowserVersion.CHROME);
@@ -779,12 +832,12 @@ public class CelescController {
 				pagina = webClient.getPage(
 						"https://agenciaweb.celesc.com.br/AgenciaWeb/imprimirSegundaVia/iniciarImprimirSegundaVia.do");
 				paginaTipo = "https://agenciaweb.celesc.com.br/AgenciaWeb/imprimirSegundaVia/iniciarImprimirSegundaVia.do";
-				baixarPDF(webClient, paginaTipo, diretorio);
+				baixarPDF(webClient, paginaTipo, diretorio, op);
 			} else if (tipo.equalsIgnoreCase("debito")) {
 				pagina = webClient
 						.getPage("https://agenciaweb.celesc.com.br/AgenciaWeb/consultarDebito/consultarDebito.do");
 				paginaTipo = "https://agenciaweb.celesc.com.br/AgenciaWeb/consultarDebito/consultarDebito.do";
-				baixarPDF(webClient, paginaTipo, diretorio);
+				baixarPDF(webClient, paginaTipo, diretorio, op);
 			} else if (tipo.equalsIgnoreCase("hp")) {
 				pagina = webClient
 						.getPage("https://agenciaweb.celesc.com.br/AgenciaWeb/consultarHistoricoPagto/consultarHistoricoPagto.do");
@@ -803,7 +856,7 @@ public class CelescController {
 
 	}
 	
-	public void getHistoricoPagamento(String diretorio) {
+	public void getHistoricoPagamento(String diretorio, boolean op) {
 		WebElement menu2Via = driver.findElement(By.xpath("//*[@id=\"mn\"]/table/tbody/tr[16]/td/a"));
 		menu2Via.click();
 		List<WebElement> listaElementos = driver.findElements(By.className("textoGeral"));
@@ -854,7 +907,7 @@ public class CelescController {
 		}
 		if (celescDados.getListaHistorico()!=null) {
 			if (celescDados.getListaHistorico().size()>0) {
-				getPDF("hp", 1, diretorio);
+				getPDF("hp", 1, diretorio, op);
 			}
 		}
 	}

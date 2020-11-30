@@ -38,6 +38,8 @@ public class Imovelcasan implements Serializable{
 	private String descricaosituacao;
 	@Transient
 	private List<Fatura> listaFatura;
+	@Transient
+	private String resultado;
 	
 	
 	
@@ -111,6 +113,12 @@ public class Imovelcasan implements Serializable{
 	
 	
 	
+	public String getResultado() {
+		return resultado;
+	}
+	public void setResultado(String resultado) {
+		this.resultado = resultado;
+	}
 	public String getSituacaolink() {
 		return situacaolink;
 	}

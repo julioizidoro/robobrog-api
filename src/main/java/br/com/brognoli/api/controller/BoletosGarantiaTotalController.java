@@ -650,6 +650,7 @@ public class BoletosGarantiaTotalController {
 				achou = true;
 			}
 			if (!achou) {
+				System.out.println(i);
 				
 				if (lines.get(i).getLinha().length() == 62) {
 					System.out.println(lines.get(i).getLinha().substring(5, 6));
@@ -1513,6 +1514,11 @@ public class BoletosGarantiaTotalController {
 				linha = linha1.substring(0,11);
 				linha = linha + linha2;
 				linha = linha + linha1.substring(12,26);
+			}
+		}
+		if (linha.length() != 54) {
+			if (!linha.substring(5, 6).equalsIgnoreCase(".")) {
+				linha = linhas.get(linhas.size()-1).getLinha();
 			}
 		}
 		return linha;

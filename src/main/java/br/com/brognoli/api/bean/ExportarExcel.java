@@ -15,6 +15,8 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.springframework.web.client.RestTemplate;
 
+import br.com.brognoli.api.casan.model.Fatura;
+import br.com.brognoli.api.casan.model.Imovelcasan;
 import br.com.brognoli.api.model.Boletos;
 import br.com.brognoli.api.model.Boletoseguro;
 import br.com.brognoli.api.model.Carne;
@@ -454,30 +456,34 @@ public void gerarOpCelesc(List<Boletos> listaBoletos, String caminhoDir, List<Ce
 		int i = 0;
 		HSSFRow row = gs.createRow(i);
 
-		row.createCell(0).setCellValue("Competencia");
-		row.createCell(1).setCellValue("Data vencimento");
-		row.createCell(2).setCellValue("Linha digitável");
-		row.createCell(3).setCellValue("CNPJ");
-		row.createCell(4).setCellValue("Nome arquivo");
-		row.createCell(5).setCellValue("Tipo");
+		row.createCell(0).setCellValue("Imóvel");
+		row.createCell(1).setCellValue("UC");
+		row.createCell(2).setCellValue("Competencia");
+		row.createCell(3).setCellValue("Data vencimento");
+		row.createCell(4).setCellValue("Linha digitável");
+		row.createCell(5).setCellValue("CNPJ");
+		row.createCell(6).setCellValue("Nome arquivo");
+		row.createCell(7).setCellValue("Tipo");
 		for (Boletos c : listaBoletos) {
 			i++;
 			row = gs.createRow(i);
-			row.createCell(0).setCellValue(c.getReferencia());
-			row.createCell(1).setCellValue(c.getDatavencimento());
-			row.createCell(2).setCellValue(c.getLinhaDigitavel());
-			row.createCell(3).setCellValue(c.getCnpj());
+			row.createCell(0).setCellValue(c.getCodigoImovel());
+			row.createCell(1).setCellValue(c.getUC());
+			row.createCell(3).setCellValue(c.getReferencia());
+			row.createCell(3).setCellValue(c.getDatavencimento());
+			row.createCell(4).setCellValue(c.getLinhaDigitavel());
+			row.createCell(5).setCellValue(c.getCnpj());
 			if (c.getNomearquivo()!=null) {
 				String nomeArquivo = c.getNomearquivo();
 				nomeArquivo = nomeArquivo.replace(".pdf", "");
-				row.createCell(4).setCellValue(nomeArquivo);
+				row.createCell(6).setCellValue(nomeArquivo);
 			}else {
-				row.createCell(4).setCellValue("");
+				row.createCell(6).setCellValue("");
 			}
 					
 			if (c.getTipo().equalsIgnoreCase("Celesc1")) {
-				row.createCell(5).setCellValue("Celesc");
-			} else row.createCell(5).setCellValue(c.getTipo());
+				row.createCell(7).setCellValue("Celesc");
+			} else row.createCell(7).setCellValue(c.getTipo());
 		}
 		
 		i = 0;
@@ -555,6 +561,7 @@ public void gerarOpCelesc(List<Boletos> listaBoletos, String caminhoDir, List<Ce
 		row.createCell(5).setCellValue("Pedido desligamento");
 		row.createCell(6).setCellValue("Situação");
 		row.createCell(7).setCellValue("Resultado");
+		row.createCell(8).setCellValue("No. PDF");
 		
 		for (CelescDados c : listaCelescDados) {
 			try {
@@ -568,6 +575,12 @@ public void gerarOpCelesc(List<Boletos> listaBoletos, String caminhoDir, List<Ce
 			row.createCell(5).setCellValue(c.getPedidodesligamento());
 			row.createCell(6).setCellValue(c.getSituacao());
 			row.createCell(7).setCellValue(c.getResultado());
+			if (c.getListaFatura()!=null) {
+				if (c.getListaFatura().size()>0) {
+					row.createCell(8).setCellValue(c.getListaFatura().size());
+				}else row.createCell(8).setCellValue(0);
+			}else row.createCell(8).setCellValue(0);
+			
 			}catch (Exception e) {
 				// TODO: handle exception
 			}
@@ -810,8 +823,147 @@ public void gerarOpCelesc(List<Boletos> listaBoletos, String caminhoDir, List<Ce
 	}
 	
 	
-	
-		
-	
+	public void exportarResultadoCasan(List<Imovelcasan> listaImoveis, String caminhoDir) throws Exception {
+		HSSFWorkbook workbook = new HSSFWorkbook();
+		HSSFCellStyle style = workbook.createCellStyle();
+		style.setDataFormat(workbook.createDataFormat().getFormat("0.00"));
+		style.setAlignment(HorizontalAlignment.RIGHT);
+		HSSFSheet firstSheet = workbook.createSheet("Debitos Casan");
+		HSSFSheet op = workbook.createSheet("OP");
+		FileOutputStream fos = null;
 
+		try {
+			if (caminhoDir.length() == 0) {
+				file = new File("debitoscasan.xls");
+			} else
+				file = new File(caminhoDir + "debitoscasan.xls");
+			fos = new FileOutputStream(file);
+			int linha = 0;
+			HSSFRow row = firstSheet.createRow(linha);
+			row.createCell(0).setCellValue("Matricula");
+			row.createCell(1).setCellValue("Mês Faturamento");
+			row.createCell(2).setCellValue("Vencimento");
+			row.createCell(3).setCellValue("Proprietario");
+			row.createCell(4).setCellValue("CPF Proprietario");
+			row.createCell(5).setCellValue("Usuario");
+			row.createCell(6).setCellValue("CPF Usuario");
+			row.createCell(7).setCellValue("Endereço");
+			row.createCell(8).setCellValue("CEP");
+			row.createCell(9).setCellValue("Municipio");
+			row.createCell(10).setCellValue("Numero Hidrometro");
+			row.createCell(11).setCellValue("Valor");
+			row.createCell(12).setCellValue("Linha digitave");
+			row.createCell(13).setCellValue("Situação");
+
+			linha++;
+
+			for (int i = 0; i < listaImoveis.size(); i++) {
+				
+				if (listaImoveis.get(i).getListaFatura() != null) {
+					for (int n = 0; n < listaImoveis.get(i).getListaFatura().size(); n++) {
+						row = firstSheet.createRow(linha);
+						Fatura fatura = (listaImoveis.get(i).getListaFatura().get(n));
+						row.createCell(0).setCellValue(fatura.getMatricula());
+						row.createCell(1).setCellValue(fatura.getReferencia());
+						row.createCell(2).setCellValue(fatura.getDatavencimento());
+						row.createCell(3).setCellValue(fatura.getProprietario());
+						row.createCell(4).setCellValue(fatura.getCpfProprietario());
+						row.createCell(5).setCellValue(fatura.getUsuario());
+						row.createCell(6).setCellValue(fatura.getCpfUsuario());
+						row.createCell(7).setCellValue(fatura.getEndereco());
+						row.createCell(8).setCellValue(fatura.getCep());
+						row.createCell(9).setCellValue(fatura.getMunicipio());
+						row.createCell(10).setCellValue(fatura.getNumeroHidrometro());
+						row.createCell(11).setCellValue(fatura.getValor());
+						row.createCell(12).setCellValue(fatura.getLinhaDigitavel());
+						row.createCell(13).setCellValue(listaImoveis.get(i).getSituacao());
+						linha++;
+					}
+
+				} else {
+					row = firstSheet.createRow(linha);
+					row.createCell(0).setCellValue(listaImoveis.get(i).getMatricula());
+					row.createCell(1).setCellValue("");
+					row.createCell(2).setCellValue("");
+					row.createCell(3).setCellValue(listaImoveis.get(i).getProprietariocasan());
+					row.createCell(4).setCellValue(listaImoveis.get(i).getCpfcasan());
+					row.createCell(5).setCellValue("");
+					row.createCell(6).setCellValue("");
+					row.createCell(7).setCellValue("");
+					row.createCell(8).setCellValue("");
+					row.createCell(9).setCellValue("");
+					row.createCell(10).setCellValue("");
+					row.createCell(11).setCellValue(0);
+					row.createCell(12).setCellValue("");
+					row.createCell(13).setCellValue(listaImoveis.get(i).getSituacao());
+					linha++;
+				}
+			}
+
+			linha = 0;
+			row = op.createRow(linha);
+
+			row.createCell(0).setCellValue("Data Vencimento");
+			row.createCell(1).setCellValue("Imovel");
+			row.createCell(2).setCellValue("Conta");
+			row.createCell(3).setCellValue("Agencia");
+			row.createCell(4).setCellValue("Valor");
+			row.createCell(5).setCellValue("Evento");
+			row.createCell(6).setCellValue("Historico");
+			row.createCell(7).setCellValue("Complemento");
+			row.createCell(8).setCellValue("Cód.Barras");
+			row.createCell(9).setCellValue("Fornecedor");
+			row.createCell(10).setCellValue("Gerar");
+			Conversor conversor = new Conversor();
+			for (int i = 0; i < listaImoveis.size(); i++) {
+				if (listaImoveis.get(i).getListaFatura() != null) {
+					for (int n = 0; n < listaImoveis.get(i).getListaFatura().size(); n++) {
+						try {
+							linha++;
+							String cb = converterCodigoBarras("casan",
+									listaImoveis.get(i).getListaFatura().get(n).getLinhaDigitavel());
+							String valor = "0,00";
+							String dataVencimento = "";
+							DecimalFormat df = new DecimalFormat("0.00");
+							df.setMaximumFractionDigits(2);
+							if (listaImoveis.get(i).getListaFatura().get(n).getValor() != null) {
+								Float fvalor = conversor
+										.formatarStringfloat(listaImoveis.get(i).getListaFatura().get(n).getValor());
+								valor = df.format(fvalor);
+								dataVencimento = listaImoveis.get(i).getListaFatura().get(n).getDatavencimento();
+							}
+							row = op.createRow(linha);
+							row.createCell(0).setCellValue(dataVencimento);
+							row.createCell(1).setCellValue(listaImoveis.get(i).getCodigoimovel());
+							row.createCell(2).setCellValue("");
+							row.createCell(3).setCellValue("");
+							row.createCell(4).setCellValue(valor);
+							row.getCell(4).setCellStyle(style);
+							row.createCell(5).setCellValue("");
+							row.createCell(6).setCellValue("");
+							row.createCell(7).setCellValue("");
+							row.createCell(8).setCellValue(cb);
+							row.createCell(9).setCellValue(getFornecedorCNPJ("82.508.433/0001-17"));
+							row.createCell(10).setCellValue("S");
+						} catch (Exception e) {
+							// TODO: handle exception
+						}
+
+					}
+				}
+			}
+
+			workbook.write(fos);
+
+			try {
+				fos.flush();
+				fos.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 }

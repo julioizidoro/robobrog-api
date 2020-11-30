@@ -47,10 +47,19 @@ public class LerSite {
 	private int linhaGeral = 0;
 	private File file;
 	//String diretorio = "C:\\Logs\\casan\\";
-	String diretorio = "C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\casan\\";
+	private String diretorio = "C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\casan\\";
 	
 	
 	
+	
+	public String getDiretorio() {
+		return diretorio;
+	}
+
+	public void setDiretorio(String diretorio) {
+		this.diretorio = diretorio;
+	}
+
 	public File getFile() {
 		return file;
 	}
@@ -75,7 +84,7 @@ public class LerSite {
 	    			String resultado = validarDadosLogin(lista.get(i));
 	    			if (resultado.equals("OK")) {
 	    				if (logar(lista.get(i))) {
-	    					lista.get(i).setSituacao(resultado);
+	    					lista.get(i).setResultado(resultado);
 	    					fechouDriver = true;
 		    				lista.set(i,verificarSituacao(lista.get(i)));
 		    				logof();
@@ -91,6 +100,7 @@ public class LerSite {
 	    			linhaGeral = i;
 	    			if (fechouDriver) {
 	    				fechouDriver = true;
+	    				
 	    				driver.close();
 	    				driver.quit();
 	    			}
@@ -102,6 +112,8 @@ public class LerSite {
 	    			driver.close();
 	    			driver.quit();
 	    		}
+	    	} else {
+	    		lista.get(i).setResultado(lista.get(i).getSituacao());
 	    	}
 	    	
 	    	
@@ -123,7 +135,7 @@ public class LerSite {
         System.setProperty("webdriver.chrome.driver", "C:/Logs/drive/chromedriver.exe");
         ChromeOptions options = new ChromeOptions();
         options.setExperimentalOption("prefs", prefs);
-
+        options.addArguments("--headless");
         options.addArguments("start-maximized");
         options.addArguments("disable-infobars");
         options.addArguments("--disable-extensions");
@@ -273,8 +285,8 @@ public class LerSite {
 		if (imovel.getCodigoimovel()==0) {
 			nome = imovel.getMatricula();
 		} else nome = String.valueOf(imovel.getCodigoimovel());
-		String filename = getNomePDF(url, nome);
-		File file = new File(diretorio+filename);
+		String filename =imovel.getCodigoimovel() + "_" +  getNomePDF(url, nome);
+		File file = new File(diretorio+ "\\" + filename);
 		InputStream is;
 		
 		
@@ -336,7 +348,7 @@ public class LerSite {
 	
 	
 	public Fatura lerPDF(Fatura fatura) throws IOException {
-		 String filename = diretorio + fatura.getArquivo();
+		 String filename = diretorio + "\\"+ fatura.getArquivo();
 		 File file = new File(filename);
 	     PDDocument document = PDDocument.load(file);
 	     if (!document.isEncrypted()) {
@@ -377,6 +389,8 @@ public class LerSite {
 	public void exportarExcel(List<Imovelcasan> listaImoveis) throws Exception {
 		HSSFWorkbook workbook = new HSSFWorkbook();
 		HSSFSheet firstSheet = workbook.createSheet("Debitos Casan");
+		HSSFSheet op = workbook.createSheet("OP");
+		HSSFSheet res = workbook.createSheet("Resultado");
 		FileOutputStream fos = null;
 		
 		try {
@@ -441,6 +455,9 @@ public class LerSite {
 					linha++;
 				}
 			}
+			
+			
+			
 			workbook.write(fos);
 
 		}catch (Exception e) {

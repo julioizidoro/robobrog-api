@@ -6,6 +6,7 @@ public class Boletos {
 	
 	private Cobranca cobranca;
 	private String codigoImovel;
+	private String UC;
 	private String Endereco;
 	private String numero;
 	private String linhaDigitavel;
@@ -105,6 +106,12 @@ public class Boletos {
 	}
 	public void setCodigoImovel(String codigoImovel) {
 		this.codigoImovel = codigoImovel;
+	}
+	public String getUC() {
+		return UC;
+	}
+	public void setUC(String uC) {
+		UC = uC;
 	}
 	
 	

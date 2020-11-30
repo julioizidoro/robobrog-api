@@ -1,30 +1,47 @@
 package br.com.brognoli.api.casan.controller;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.validation.Valid;
 
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.openxml4j.opc.OPCPackage;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import br.com.brognoli.api.bean.ExportarExcel;
 import br.com.brognoli.api.casan.bean.LerCasanDocumentos;
 import br.com.brognoli.api.casan.bean.LerSite;
 import br.com.brognoli.api.casan.model.Fatura;
 import br.com.brognoli.api.casan.model.Imovelcasan;
 import br.com.brognoli.api.casan.repository.ImoveisRepository;
 import br.com.brognoli.api.service.S3Service;
+import br.com.brognoli.api.util.Conversor;
 
 @CrossOrigin
 @RestController
@@ -104,6 +121,52 @@ public class DebitosController {
 		}
 		return ResponseEntity.notFound().build();
 		
+	}
+	
+	@GetMapping("/consulta/debitos/{nomepasta}")
+	@ResponseStatus(HttpStatus.CREATED)
+	public List<Imovelcasan> getDebitos(@PathVariable("nomepasta") String nomepasta)  {
+		if (nomepasta.equalsIgnoreCase("@")) {
+			Conversor c = new Conversor();
+			nomepasta = c.getDiaMesAno(new Date());
+		}
+		String caminhoDir="\\\\192.168.1.58\\documentos\\centralfinanceira\\BOLETOS DE CONDOMÍNIOS\\casan\\" + nomepasta + "\\";
+		File dirFile = new File(caminhoDir);
+		if (!dirFile.exists()) {
+			dirFile.mkdir();
+		}
+		LerSite siteCasan = new LerSite();
+		String d = dirFile.getAbsolutePath().toString();
+		siteCasan.setDiretorio(d);
+		listaImoveis = siteCasan.getBoletos(listaImoveis); 
+		if (listaImoveis.size()>0) {
+			for (int i=0;i<listaImoveis.size();i++) {
+			if (listaImoveis.get(i).getListaFatura()!=null) {
+				if (listaImoveis.get(i).getListaFatura().size()>0) {
+					List<Fatura> novaLita = new ArrayList<Fatura>();
+					for (int f=0;f<listaImoveis.get(i).getListaFatura().size();f++) {
+						Fatura fatura = listaImoveis.get(i).getListaFatura().get(f);
+						try {
+							fatura = siteCasan.lerPDF(fatura);
+							novaLita.add(fatura);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+					listaImoveis.get(i).setListaFatura(novaLita);
+				}
+			}
+		}
+			ExportarExcel ex = new ExportarExcel();
+			try {
+				ex.exportarResultadoCasan(listaImoveis, caminhoDir);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return listaImoveis;
 	}
 	
 	@GetMapping("/consulta/debitos")
@@ -240,7 +303,7 @@ public class DebitosController {
 	        this.listaImoveis.get(i).setSituacao("MATRICULA INVÁLIDA");
 	      } else if(this.listaImoveis.get(i).getMatricula()=="INDIVIDUAL") {
 	        this.listaImoveis.get(i).setSituacao("MATRICULA INVÁLIDA");
-	      } else if(this.listaImoveis.get(i).getCpfcasan().length()<12) {
+	      } else if(this.listaImoveis.get(i).getCpfcasan().length()<11) {
 	        this.listaImoveis.get(i).setSituacao("CPF INVÁLIDA");
 	      } else {
 	        this.listaImoveis.get(i).setSituacao("OK");
@@ -248,4 +311,74 @@ public class DebitosController {
 	    }
 
 	  }
+	
+	
+	@PostMapping("/gerarlista")
+	@ResponseStatus(HttpStatus.CREATED)
+	public void lerXLSX(@RequestParam(name = "file") MultipartFile file) throws IOException, InvalidFormatException {
+		listaImoveis = new ArrayList<Imovelcasan>();
+		String url = "c:\\logs\\" + file.getOriginalFilename();
+		File fileToSave = new File(url);
+		fileToSave.createNewFile();
+		FileOutputStream fos = new FileOutputStream(fileToSave);
+		fos.write(file.getBytes());
+		fos.close();
+		BufferedReader br = null;
+		InputStream is = file.getInputStream();
+		OPCPackage pkg = OPCPackage.open(fileToSave);
+		XSSFWorkbook workbook = new XSSFWorkbook(pkg);
+		XSSFSheet sheet = workbook.getSheetAt(0);
+		Iterator linhas = sheet.rowIterator();
+		linhas.next();
+		while (linhas.hasNext()) {
+			XSSFRow linha = (XSSFRow) linhas.next();
+			Iterator celulas = linha.cellIterator();
+			Imovelcasan casan = new Imovelcasan();
+			casan.setCpfcasan("");
+			casan.setCpflocatario("");
+			casan.setDescricaosituacao("");
+			casan.setLocatario("");
+			casan.setMatricula(null);
+			casan.setNomeproprietario("");
+			casan.setProprietariocasan("");
+			casan.setSituacao("OK");
+			casan.setSituacaolink("");
+			casan.setUsuarioatual("");
+			
+			while (celulas.hasNext()) {
+				XSSFCell cel = (XSSFCell) celulas.next();
+				int z = cel.getColumnIndex();
+				switch (z) {
+				case 0:
+					if (cel.getCellTypeEnum() == CellType.STRING) {
+						String dados = cel.getStringCellValue();
+						casan.setCodigoimovel(Integer.parseInt(dados));
+					} else if (cel.getCellTypeEnum() == CellType.NUMERIC) {
+						int dados = (int) cel.getNumericCellValue();
+						casan.setCodigoimovel(dados);
+					}
+				case 1:
+					if (cel.getCellTypeEnum() == CellType.STRING) {
+						String dados = cel.getStringCellValue();
+						dados = dados.replace("*", "");
+						casan.setMatricula(dados);
+					} else if (cel.getCellTypeEnum() == CellType.NUMERIC) {
+						int dados = (int) cel.getNumericCellValue();
+						casan.setMatricula(String.valueOf(dados));
+					}
+				case 2:
+					if (cel.getCellTypeEnum() == CellType.STRING) {
+						String dados = cel.getStringCellValue();
+						casan.setCpfcasan(dados);
+					} else if (cel.getCellTypeEnum() == CellType.NUMERIC) {
+						int dados = (int) cel.getNumericCellValue();
+						casan.setCpfcasan(String.valueOf(dados));
+					}
+				}
+					
+			}
+			
+			listaImoveis.add(casan);
+		}
+	}
 }
