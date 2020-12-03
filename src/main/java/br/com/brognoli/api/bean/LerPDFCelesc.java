@@ -34,11 +34,15 @@ public class LerPDFCelesc {
 	
 	private String caminhoDir= "";
 	
-	public Boletos carregarPDF(CelescFatura fatura, String diretorio) {
+	public Boletos carregarPDF(CelescFatura fatura, String diretorio, boolean op, int codigoImovel) {
 		caminhoDir = diretorio;
 		Boletos boletos = new Boletos();
 		String tipo ="";
-			String fileName = caminhoDir + fatura.getNumero() + ".pdf"; 
+		String fileName = "";
+			if (op) {
+				fileName = caminhoDir +  codigoImovel + "_" + fatura.getNumero() + ".pdf";
+			} else fileName = caminhoDir + fatura.getNumero() + ".pdf";
+			 
 			PdfReader reader;
 			List<Linhas> lines = new ArrayList<Linhas>();
 			try {

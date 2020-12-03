@@ -200,7 +200,7 @@ public class IptuSjController {
         System.setProperty("webdriver.chrome.driver", "C:/Logs/drive/chromedriver.exe");
         ChromeOptions options = new ChromeOptions();
         options.setExperimentalOption("prefs", prefs);
-        options.addArguments("--headless");
+        //options.addArguments("--headless");
         options.addArguments("start-maximized");
         options.addArguments("disable-infobars");
         options.addArguments("--disable-extensions");

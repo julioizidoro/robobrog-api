@@ -189,7 +189,7 @@ public class CelescController {
         System.setProperty("webdriver.chrome.driver", "C:/Logs/drive/chromedriver.exe");
         ChromeOptions options = new ChromeOptions();
         options.setExperimentalOption("prefs", prefs);
-        options.addArguments("--headless");
+        //options.addArguments("--headless");
         options.addArguments("start-maximized");
         options.addArguments("disable-infobars");
         options.addArguments("--disable-extensions");
@@ -341,6 +341,7 @@ public class CelescController {
 			for (int i=posicao;i<listaCelescDados.size();i++) {
 				celescDados = new CelescDados();
 				celescDados.setCodigo(listaCelescDados.get(i).getCodigo());
+				celescDados.setImovel(listaCelescDados.get(i).getImovel());
 				if (listaCelescDados.get(i).getResultado().equalsIgnoreCase("PDF SALVO")) {
 					novaLista.add(listaCelescDados.get(i));
 				} else if (listaCelescDados.get(i).getResultado().equalsIgnoreCase("UC INVÁLIDA")) {
@@ -417,7 +418,7 @@ public class CelescController {
 					if (listaFatura.size()>0) {
 						LerPDFCelesc lerPdfCelesc = new LerPDFCelesc();
 						for(int l=0;l<listaFatura.size();l++) {
-							Boletos b = lerPDFCelesc.carregarPDF(listaFatura.get(l), caminhoDir);
+							Boletos b = lerPDFCelesc.carregarPDF(listaFatura.get(l), caminhoDir, true, novaLista.get(i).getImovel());
 							if (b!=null) {
 								b.setCodigoImovel(String.valueOf(novaLista.get(i).getImovel()));
 								b.setUC(novaLista.get(i).getCodigo());
@@ -452,7 +453,7 @@ public class CelescController {
         System.setProperty("webdriver.chrome.driver", "C:/Logs/drive/chromedriver.exe");
         ChromeOptions options = new ChromeOptions();
         options.setExperimentalOption("prefs", prefs);
-        options.addArguments("--headless");
+        //options.addArguments("--headless");
         options.addArguments("start-maximized");
         options.addArguments("disable-infobars");
         options.addArguments("--disable-extensions");
