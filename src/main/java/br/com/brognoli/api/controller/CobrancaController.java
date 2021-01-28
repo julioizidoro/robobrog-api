@@ -60,6 +60,7 @@ import br.com.brognoli.api.model.Boletos;
 import br.com.brognoli.api.model.Cobranca;
 import br.com.brognoli.api.model.Cobrancaarquivo;
 import br.com.brognoli.api.model.Modelos;
+import br.com.brognoli.api.model.Resposta;
 import br.com.brognoli.api.repository.CobrancaArquivoRepository;
 import br.com.brognoli.api.repository.CobrancaRepository;
 import br.com.brognoli.api.service.S3Service;
@@ -78,8 +79,6 @@ public class CobrancaController {
 	@Autowired
 	private CobrancaArquivoRepository cobrancaArquivoRepository;
 	private List<Cobrancaresultado> listaCobrancaResultado;
-	@Autowired
-	private S3Service s3Service;
 	private String caminhoDir="\\\\192.168.1.58\\documentos\\centralfinanceira\\BOLETOS DE CONDOMÍNIOS\\Winker\\"; 
 			//"c:\\logs\\winker\\"; 
 	
@@ -279,7 +278,9 @@ public class CobrancaController {
 	
 	@GetMapping("/gerarexcel/{mes}/{ano}/{administradora}")
 	@ResponseStatus(HttpStatus.CREATED)
-	public ResponseEntity<Void> exportarExcel(@PathVariable("mes") String mes, @PathVariable("ano") String ano, @PathVariable("administradora") String administradora, HttpServletResponse response) {
+	public ResponseEntity<Resposta> exportarExcel(@PathVariable("mes") String mes, @PathVariable("ano") String ano, @PathVariable("administradora") String administradora, HttpServletResponse response) {
+		Resposta r = new Resposta();
+		r.setResultado("erro");
 		if (administradora.equalsIgnoreCase("@")) {
 			administradora= "";
 		}
@@ -438,8 +439,8 @@ public class CobrancaController {
 				ExportarExcel ex = new ExportarExcel();
 				ex.gerarWinker(listaBoletos, mes + "_" + ano);
 				File file =ex.getFile();
-				URI uri = s3Service.uploadFile(file);
-				return ResponseEntity.created(uri).build();
+				r.setResultado("ok");
+				return ResponseEntity.ok(r);
 			}
 		}
 					

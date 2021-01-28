@@ -35,6 +35,7 @@ import br.com.brognoli.api.model.Boletoseguro;
 import br.com.brognoli.api.model.CelescDados;
 import br.com.brognoli.api.model.Imoveladm;
 import br.com.brognoli.api.model.Linhas;
+import br.com.brognoli.api.model.Resposta;
 import br.com.brognoli.api.service.S3Service;
 
 @CrossOrigin
@@ -42,15 +43,15 @@ import br.com.brognoli.api.service.S3Service;
 @RequestMapping("/seguros")
 public class BoletoSeguroController {
 	
-	@Autowired
-	private S3Service s3Service;
 	
 	private String caminhoDir;
 	
 	@PostMapping("/upload")
 	@ResponseStatus(HttpStatus.CREATED)
-	public ResponseEntity<Void> uploadPDFSimplficada(@RequestParam(name="file") MultipartFile[] files) {
+	public ResponseEntity<Resposta> uploadPDFSimplficada(@RequestParam(name="file") MultipartFile[] files) {
 		List<Boletoseguro> listaBoletos = new ArrayList<Boletoseguro>();
+		Resposta r = new Resposta();
+		r.setResultado("erro");
 		for (MultipartFile uploadFile : files) {
 			
 			InputStream is = null;
@@ -106,8 +107,8 @@ public class BoletoSeguroController {
 				ExportarExcel ex = new ExportarExcel();
 				ex.gerarSeguro(listaBoletos);
 				File file = ex.getFile();
-				URI uri = s3Service.uploadFile(file);
-				return ResponseEntity.created(uri).build();
+				r.setResultado("ok");
+				return ResponseEntity.ok(r);
 			}
 		}
 		return null;

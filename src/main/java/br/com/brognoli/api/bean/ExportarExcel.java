@@ -1,6 +1,7 @@
 package br.com.brognoli.api.bean;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
@@ -17,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 
 import br.com.brognoli.api.casan.model.Fatura;
 import br.com.brognoli.api.casan.model.Imovelcasan;
+import br.com.brognoli.api.model.BoletoAmbiental;
 import br.com.brognoli.api.model.Boletos;
 import br.com.brognoli.api.model.Boletoseguro;
 import br.com.brognoli.api.model.Carne;
@@ -79,7 +81,8 @@ public class ExportarExcel {
 		FileOutputStream fos = null;
 
 		try {
-			file = new File("Winker_" + mesano + ".xls");
+			String caminhoExcel = "C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\extracao\\"; 
+			file = new File(caminhoExcel + "Winker_" + mesano + ".xls");
 			fos = new FileOutputStream(file);
 			int i = 0;
 			HSSFRow row = firstSheet.createRow(i);
@@ -169,14 +172,13 @@ public class ExportarExcel {
 	
 	public void gerarGT(List<Boletos> listaBoletos) {
 		
-		
-			
 			HSSFWorkbook workbook = new HSSFWorkbook();
 			HSSFSheet firstSheet = workbook.createSheet("Eventos Valores");
 			FileOutputStream fos = null;
 
 			try {
-				file = new File("GarantiaTotal.xls");
+				String caminhoExcel = "C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\extracao\\"; 
+				file = new File(caminhoExcel + "GarantiaTotal.xls");
 				fos = new FileOutputStream(file);
 				int i = 0;
 				HSSFRow row = firstSheet.createRow(i);
@@ -706,16 +708,17 @@ public void gerarOpCelesc(List<Boletos> listaBoletos, String caminhoDir, List<Ce
 		}
      }
 	
-		public void gerarSeguro(List<Boletoseguro> listaBoletos) {
+		public void gerarSeguro(List<Boletoseguro> listaBoletos ) {
 		
 		
 		
 		HSSFWorkbook workbook = new HSSFWorkbook();
 		HSSFSheet firstSheet = workbook.createSheet("Eventos Valores");
 		FileOutputStream fos = null;
-
+		
 		try {
-			file = new File("BoletoSeguros.xls");
+			String caminhoExcel = "C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\extracao\\"; 
+			file = new File(caminhoExcel + "BoletoSeguros.xls");
 			fos = new FileOutputStream(file);
 			int i = 0;
 			HSSFRow row = firstSheet.createRow(i);
@@ -966,4 +969,53 @@ public void gerarOpCelesc(List<Boletos> listaBoletos, String caminhoDir, List<Ce
 			e.printStackTrace();
 		}
 	}
+	
+	public void exportarPDFAmbiental(List<BoletoAmbiental> listaAmbiental, String caminhoDir) {
+		file = new File(caminhoDir + "Ambiental.xls");
+		FileOutputStream fos = null;
+		try {
+			fos = new FileOutputStream(file);
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		HSSFWorkbook workbook = new HSSFWorkbook();
+		HSSFSheet firstSheet = workbook.createSheet("Boletos");
+		
+		try {
+			int i = 0;
+			HSSFRow row = firstSheet.createRow(i);
+			row.createCell(0).setCellValue("LinhaDigitavel");
+			row.createCell(1).setCellValue("Inscrição");
+            row.createCell(2).setCellValue("Competencia");
+            row.createCell(3).setCellValue("Código Barras");
+            row.createCell(3).setCellValue("NomeArquivo");
+            
+                        
+			
+			i++;
+			
+			
+			for (BoletoAmbiental c : listaAmbiental) {
+				row = firstSheet.createRow(i);
+				row.createCell(0).setCellValue(c.getLinhaDigitavel());
+				row.createCell(1).setCellValue(c.getInscricao());
+				row.createCell(2).setCellValue(c.getMes());                                
+                row.createCell(3).setCellValue(c.getCodigoBarras());
+                row.createCell(3).setCellValue(c.getNomeArquivo());
+				i++;
+			}
+			workbook.write(fos);
+
+		}catch (Exception e) {
+			System.out.println(e);
+		}
+		
+		try {
+			fos.flush();
+			fos.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+     }
 }

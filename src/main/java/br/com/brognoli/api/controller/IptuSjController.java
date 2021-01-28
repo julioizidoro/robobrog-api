@@ -93,8 +93,6 @@ public class IptuSjController {
 	private int contador;
     private int numeroLinha;
     private boolean dataSetada;
-    @Autowired
-	private S3Service s3Service;
     private String caminhoDir="\\\\192.168.1.58\\documentos\\centralfinanceira\\BOLETOS DE CONDOMÍNIOS\\iptusj\\";
     //private String caminhoDir="c:\\logs\\julio\\";
     List<CarneIPTU> listaIPTU;
@@ -164,8 +162,10 @@ public class IptuSjController {
 				if ((listaCarne.get(i).getSituacao().equalsIgnoreCase("Carregado")) || (listaCarne.get(i).getSituacao().equalsIgnoreCase("ERRO"))|| (listaCarne.get(i).getSituacao().equalsIgnoreCase("ERRO PDF"))) {
 					File f = new File(caminhoDir + listaCarne.get(i).getInscricao() + "_20201.pdf");
 					if (!f.exists()) {
-						situacao = lerSitePMSJ(listaCarne.get(i).getCadastro(), sdataVencimento, listaCarne.get(i).getInscricao());
-						listaCarne.get(i).setSituacao(situacao);
+						for (int u=1;u<=3;u++) {
+							situacao = lerSitePMSJ(listaCarne.get(i).getCadastro(), sdataVencimento, listaCarne.get(i).getInscricao(),u);
+							listaCarne.get(i).setSituacao(situacao);
+						}
 					}else {
 						listaCarne.get(i).setSituacao("PDF SALVO");
 					}
@@ -227,7 +227,7 @@ public class IptuSjController {
         }
     }
     
-    public String lerSitePMSJ(String cadastro, String datavencmento, String inscricao)throws Exception{
+    public String lerSitePMSJ(String cadastro, String datavencmento, String inscricao, int parcela)throws Exception{
     	String situacao = "";
         WebElement menu2Via = driver.findElement(By.id("mainForm:iImoveis"));
         Thread.sleep(1000);
@@ -275,19 +275,43 @@ public class IptuSjController {
             List<WebElement> listaCheck = driver.findElements(By.xpath("//*[@id=\"mainForm:P:0:F:1:F\"]"));
             if ((listaCheck == null) || (listaCheck.size() == 0)){
                 listaCheck = driver.findElements(By.xpath("//*[@id=\"selectAll\"]"));
-                if ((listaCheck != null) && (listaCheck.size() == 1)){
-                    listaCheck = driver.findElements(By.xpath("//*[@id=\"selectAll\"]"));
-                    listaCheck.get(0).click();     
-                    botaoEnviar = driver.findElement(By.id("mainForm:emitir"));
-                    botaoEnviar.click();
-                    situacao = salvarPDF(inscricao + "_20201");
+                if ((listaCheck != null) && (listaCheck.size() == 2)){
+                	if (parcela==1) {
+                		//WebElement Check = driver.findElement(By.xpath("//*[@id=\"mainForm:P:0:F:0:resumo:2:selectedUnica\"]"));
+                        //Check.click();     
+                        botaoEnviar = driver.findElement(By.id("mainForm:emitir"));
+                        botaoEnviar.click();
+                        situacao = salvarPDF(inscricao + "_2021_Unica");
+                	/*} else if (parcela==2) {
+                		WebElement Check = driver.findElement(By.xpath("//*[@id=\"mainForm:P:0:F:0:resumo:1:selectedUnica\"]"));
+                		Check = driver.findElement(By.xpath("//*[@id=\"mainForm:P:0:F:0:resumo:0:selectedUnica\"]"));
+                        Check.click();
+                        Check = driver.findElement(By.xpath("//*[@id=\"mainForm:P:0:F:0:resumo:1:selectedUnica\"]"));
+                	    Check.click();
+                        WebElement marcar = driver.findElement(By.xpath("//*[@id=\"selectAll\"]"));
+                        marcar.click();
+                        botaoEnviar = driver.findElement(By.id("mainForm:emitir"));
+                        botaoEnviar.click();
+                        situacao = salvarPDF(inscricao + "_2021_2x");*/
+                	} else if (parcela==3) {
+                		WebElement Check = driver.findElement(By.xpath("//*[@id=\"mainForm:P:0:F:0:resumo:0:selectedUnica\"]"));
+                        Check.click();    
+                        WebElement marcar = driver.findElement(By.xpath("//*[@id=\"selectAll\"]")); 
+                        marcar.click();
+                        botaoEnviar = driver.findElement(By.id("mainForm:emitir"));
+                        botaoEnviar.click();//*[@id="mainForm:P:0:F:0:resumo:0:selectedUnica"]
+                        situacao = salvarPDF(inscricao + "_2021_11x");
+                	}
+                    
                 }  else {
                     listaCheck = driver.findElements(By.xpath("//*[@id=\"selectAll\"]"));
-                    if ((listaCheck != null) && (listaCheck.size() == 2)){
-                        menu2Via = driver.findElement(By.xpath("//*[@id=\"mainForm:P:0:F:0:resumo:0:selectedUnica\"]"));
-                        menu2Via.click();
-                        listaCheck = driver.findElements(By.xpath("//*[@id=\"selectAll\"]"));
-                        listaCheck.get(0).click();     
+                    if ((listaCheck != null) && (listaCheck.size() == 3)){
+                        //menu2Via = driver.findElement(By.xpath("//*[@id=\"mainForm:P:0:F:0:resumo:0:selectedUnica\"]"));
+                    	menu2Via = driver.findElement(By.xpath("//*[@id=\"mainForm:P:0:F:0:resumo:2:selectedUnica\"]"));
+                    	
+                    	menu2Via.click();
+                        //listaCheck = driver.findElements(By.xpath("//*[@id=\"selectAll\"]"));
+                        //listaCheck.get(0).click();     
                         botaoEnviar = driver.findElement(By.id("mainForm:emitir"));
                         botaoEnviar.click();
                         situacao = salvarPDF(inscricao + "_20201");
@@ -318,7 +342,7 @@ public class IptuSjController {
                 		System.out.println(listaPlots.get(0).getAttribute("id"));
                         menu2Via.click();
                         listaCheck = driver.findElements(By.xpath("//*[@id=\"selectAll\"]"));
-                        //listaCheck.get(1).click();
+                        listaCheck.get(1).click();
 	
                 	}	
                     botaoEnviar = driver.findElement(By.id("mainForm:emitir"));
@@ -456,12 +480,17 @@ public class IptuSjController {
 		boolean novo = false;
 		for (int i = 0; i < lines.size(); i++) {
 			String line = lines.get(i).getLinha();
-			if (line.contains("Página: ")) {
-				if (carne.getLinhaDigitavel()!=null) {
-					listaIPTU.add(carne);
-				}
-			    carne = new CarneIPTU();
-			}
+			if (line.length()>10){
+                if (line.equalsIgnoreCase("Ouvidoria: 0800 725 7474. caixa.gov.br.")){
+                    if (novo) {
+                        novo = false;
+                        listaIPTU.add(carne);
+                    }
+                }
+                if (line.substring(0, 6).equalsIgnoreCase("Página")) {
+                        carne = new CarneIPTU();
+                }
+            }
 			
 			if (line.equalsIgnoreCase("(-) Desconto")) {
 				String linhaDigitavel = lines.get(i + 1).getLinha();
@@ -514,7 +543,7 @@ public class IptuSjController {
 
 	}
 	
-	@GetMapping("/exportarexcel")
+	@GetMapping("/sj/exportarexcel")
 	@ResponseStatus(HttpStatus.CREATED)
 	public ResponseEntity<File> UploadExportarExcel() {
 		listaIPTU = new ArrayList<CarneIPTU>();
@@ -563,7 +592,6 @@ public class IptuSjController {
 				ExportarExcel ex = new ExportarExcel();
 				ex.exportarResultadoExcelSJ(listaIPTU, caminhoDir, listaCarne);
 				File file = ex.getFile();
-				URI uri = s3Service.uploadFile(file);
 				r.setResultado("ok");
 				return ResponseEntity.ok(file);
 			}

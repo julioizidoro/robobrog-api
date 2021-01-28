@@ -526,7 +526,8 @@ public class LerSite {
 		HSSFWorkbook workbook = new HSSFWorkbook();
 		HSSFSheet firstSheet = workbook.createSheet("Debitos Casan");
 		FileOutputStream fos = null;
-		file = new File("resultadocasan.xls");
+		String caminhoExcel = "C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\extracao\\"; 
+		file = new File(caminhoExcel + "resultadocasan.xls");
 		try {
 			fos = new FileOutputStream(file);
 			int linha = 0;

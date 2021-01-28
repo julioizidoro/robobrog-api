@@ -40,6 +40,7 @@ import br.com.brognoli.api.casan.bean.LerSite;
 import br.com.brognoli.api.casan.model.Fatura;
 import br.com.brognoli.api.casan.model.Imovelcasan;
 import br.com.brognoli.api.casan.repository.ImoveisRepository;
+import br.com.brognoli.api.model.Resposta;
 import br.com.brognoli.api.service.S3Service;
 import br.com.brognoli.api.util.Conversor;
 
@@ -51,9 +52,7 @@ public class DebitosController {
 	private List<Imovelcasan> listaImoveis;
 	@Autowired
 	private ImoveisRepository imoveisRepository;
-	@Autowired
-	private S3Service s3Service;
-
+	
 	@PostMapping("/setlista")
 	@ResponseStatus(HttpStatus.CREATED)
 	public void getDeibtos(@Valid @RequestBody List<Imovelcasan> lista) {
@@ -81,15 +80,17 @@ public class DebitosController {
 	
 	@GetMapping("/gerarresultado")
 	@ResponseStatus(HttpStatus.CREATED)
-	public ResponseEntity<Void> getExcelResultados() throws Exception {
+	public ResponseEntity<Resposta> getExcelResultados() throws Exception {
+		Resposta r = new Resposta();
+		r.setResultado("erro");
 		LerSite siteCasan = new LerSite();
 		try {
 			if (listaImoveis!=null) {
 				if (listaImoveis.size()>0) {
 					siteCasan.exportarExcelResultado(listaImoveis);
 					File file = siteCasan.getFile();
-					URI uri = s3Service.uploadFile(file);
-					return ResponseEntity.created(uri).build();
+					r.setResultado("ok");
+					return ResponseEntity.ok(r);
 				}
 			}
 			
@@ -97,21 +98,24 @@ public class DebitosController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return ResponseEntity.notFound().build();
+		r.setResultado("ok");
+		return ResponseEntity.ok(r);
 		
 	}
 	
 	@GetMapping("/gerardebitos")
 	@ResponseStatus(HttpStatus.CREATED)
-	public ResponseEntity<Void> getExcelDebitos() throws Exception {
+	public ResponseEntity<Resposta> getExcelDebitos() throws Exception {
+		Resposta r = new Resposta();
+		r.setResultado("erro");
 		LerSite siteCasan = new LerSite();
 		try {
 			if (listaImoveis!=null) {
 				if (listaImoveis.size()>0) {
 					siteCasan.exportarExcel(listaImoveis);
 					File file = siteCasan.getFile();
-					URI uri = s3Service.uploadFile(file);
-					return ResponseEntity.created(uri).build();
+					r.setResultado("ok");
+					return ResponseEntity.ok(r);
 				}
 			}
 			

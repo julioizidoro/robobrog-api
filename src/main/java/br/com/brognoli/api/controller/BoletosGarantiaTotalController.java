@@ -80,8 +80,6 @@ public class BoletosGarantiaTotalController {
 
 	@Autowired
 	private ImovelAdmRepository imovelAdmRepository;
-	@Autowired
-	private S3Service s3Service;
 	
 	private String caminhoDir;
 	
@@ -125,10 +123,11 @@ public class BoletosGarantiaTotalController {
 	
 	@PostMapping("/gerarexcel")
 	@ResponseStatus(HttpStatus.CREATED)
-	public URI exportarExcel(@RequestParam(name = "file") MultipartFile[] files) {
-
+	public ResponseEntity<Resposta> exportarExcel(@RequestParam(name = "file") MultipartFile[] files) {
+		Resposta r = new Resposta();
+		r.setResultado("erro");
 		int encontrado = 0;
-
+		
 		List<String> listaAdm = new ArrayList<String>();
 		if (files != null) {
 			List<Boletos> listaBoletos = new ArrayList<Boletos>();
@@ -449,12 +448,12 @@ public class BoletosGarantiaTotalController {
 					ExportarExcel ex = new ExportarExcel();
 					ex.gerarGT(listaBoletos);
 					File file = ex.getFile();
-					URI uri = s3Service.uploadFile(file);
-					return uri;
+					r.setResultado("ok");
+					return ResponseEntity.ok(r);
 				}
 			}
 		}
-		return null;
+		return ResponseEntity.ok(r);
 	}
 
 	public String getCodgioImovel(String nome) {
@@ -500,8 +499,8 @@ public class BoletosGarantiaTotalController {
 	@PostMapping("/upload")
 	@ResponseStatus(HttpStatus.CREATED)
 	public ResponseEntity<Void> uploadPDF(@RequestParam(name="file") MultipartFile[] files) {
-		URI uri = exportarExcel(files);
-		return ResponseEntity.created(uri).build();
+		exportarExcel(files);
+		return null;
 	}
 
 	@PostMapping("/sf/upload")
@@ -615,7 +614,6 @@ public class BoletosGarantiaTotalController {
 				//ex.gerarGTSimpificada(listaBoletos);
 				ex.gerarOp(listaBoletos, "");
 				File file = ex.getFile();
-				URI uri = s3Service.uploadFile(file);
 				r.setResultado("ok");
 				return ResponseEntity.ok(r);
 			}

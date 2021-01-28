@@ -78,8 +78,6 @@ public class CelescController {
 	private List<CelescDados> listaCelescDados;
 	HtmlPage pagina;
 	WebClient webClient;
-	@Autowired
-	private S3Service s3Service;
 	private int posicao;
 	private List<CelescDados> novaLista;
 	
@@ -434,7 +432,6 @@ public class CelescController {
 					//ex.gerarGTSimpificada(listaBoletos);
 					ex.gerarOpCelesc(listaBoletos, caminhoDir, novaLista);
 					File file = ex.getFile();
-					URI uri = s3Service.uploadFile(file);
 					r.setResultado("ok");
 					return ResponseEntity.ok(novaLista);
 				}
