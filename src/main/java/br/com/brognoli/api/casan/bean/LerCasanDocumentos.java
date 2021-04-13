@@ -23,6 +23,7 @@ import com.gargoylesoftware.htmlunit.CookieManager;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlButton;
+import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlInput;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
@@ -50,7 +51,9 @@ public class LerCasanDocumentos {
 			if (resultado.equals("OK")) {
 				if (logar(imovel, "e.casan.com.br/certidaonegativa/")) {
 					imovel = verificarSituacao(imovel, "https://e.casan.com.br/certidaonegativa/");
-					imovel.setSituacao(resultado);
+					if (!imovel.getSituacao().equalsIgnoreCase("Possui debitos")) {
+						imovel.setSituacao(resultado);
+					}
     				logof();
     			} else {
 					imovel.setSituacao("ERRO AO LOGAR E-CASAN");
@@ -69,14 +72,16 @@ public class LerCasanDocumentos {
 	}
 	
 	public Imovelcasan getQuitacaoAnual(Imovelcasan imovel) {
-		inicar("https://e.casan.com.br/quitacaoanual//");
+		inicar("https://e.casan.com.br/quitacaoanual/");
 		try {
 			Thread.sleep(1000);
 			String resultado = validarDadosLogin(imovel);
 			if (resultado.equals("OK")) {
-				if (logar(imovel, "e.casan.com.br/quitacaoanual//")) {
-					imovel = verificarSituacao(imovel, "https://e.casan.com.br/quitacaoanual//");
-					imovel.setSituacao(resultado);
+				if (logar(imovel, "e.casan.com.br/quitacaoanual/")) {
+					imovel = verificarSituacao(imovel, "https://e.casan.com.br/quitacaoanual/");
+					if (!imovel.getSituacao().equalsIgnoreCase("Possui debitos")) {
+						imovel.setSituacao(resultado);
+					}
     				logof();
     			} else {
 					imovel.setSituacao("ERRO AO LOGAR E-CASAN");
@@ -181,8 +186,12 @@ public class LerCasanDocumentos {
 			buttonLWebSair = formulario.getOneHtmlElementByAttribute("button", "type", "submit");
 		}
 		if (site.equalsIgnoreCase("https://e.casan.com.br/certidaonegativa/")) {
-			salvarPDF("https://e.casan.com.br/certidaonegativa/download/", imovel, webClient,  "_certidao");
-		}else salvarPDF("https://e.casan.com.br/quitacaoanual/download", imovel, webClient, "_quitacao");
+			String resultado = salvarPDF("https://e.casan.com.br/certidaonegativa/download/", imovel, webClient,  "_certidao");
+			imovel.setSituacao(resultado);
+		}else {
+			String resultado = salvarPDF("https://e.casan.com.br/quitacaoanual/download", imovel, webClient, "_quitacao");
+			imovel.setSituacao(resultado);
+		}
 		
 		
 		
@@ -196,8 +205,9 @@ public class LerCasanDocumentos {
 		File file = new File(diretorio+nome);
 		InputStream is;
 		
-		
+		try {
 		webClient.getPage(url);
+		
 		is = webClient.getPage(url).getWebResponse().getContentAsStream();
          OutputStream out = new FileOutputStream(file);
 						byte[] buffer = new byte[8 * 1024];
@@ -206,6 +216,9 @@ public class LerCasanDocumentos {
 							out.write(buffer, 0, bytesRead);
 						}
 						out.close();
+		} catch (Exception e) {
+			return "Possui debitos";
+		}
 		return nome;
 		
 	}

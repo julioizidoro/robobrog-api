@@ -111,7 +111,7 @@ public class BoletoSeguroController {
 				return ResponseEntity.ok(r);
 			}
 		}
-		return null;
+		return ResponseEntity.ok(r); 
 	}
 	
 	public Boletoseguro lerPdfSeguro(List<Linhas> lines) {

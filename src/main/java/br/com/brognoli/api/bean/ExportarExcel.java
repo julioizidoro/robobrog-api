@@ -718,6 +718,7 @@ public void gerarOpCelesc(List<Boletos> listaBoletos, String caminhoDir, List<Ce
 		
 		try {
 			String caminhoExcel = "C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\extracao\\"; 
+			//String caminhoExcel = "C:\\LOGS\\ExTRACAO\\";
 			file = new File(caminhoExcel + "BoletoSeguros.xls");
 			fos = new FileOutputStream(file);
 			int i = 0;
