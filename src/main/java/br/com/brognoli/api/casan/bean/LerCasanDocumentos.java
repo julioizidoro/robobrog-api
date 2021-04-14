@@ -50,9 +50,19 @@ public class LerCasanDocumentos {
 			String resultado = validarDadosLogin(imovel);
 			if (resultado.equals("OK")) {
 				if (logar(imovel, "e.casan.com.br/certidaonegativa/")) {
-					imovel = verificarSituacao(imovel, "https://e.casan.com.br/certidaonegativa/");
-					if (!imovel.getSituacao().equalsIgnoreCase("Possui debitos")) {
-						imovel.setSituacao(resultado);
+					WebElement elemento = null;
+					try {
+						elemento = driver.findElement(By.xpath("/html/body/div[3]/div[4]/div/h4"));
+					}catch (Exception e) {
+						// TODO: handle exception
+					}
+					if (elemento!=null) {
+						imovel.setSituacao("Para emitir a certidão você precisa regularizar as pendencais");
+					} else {
+						imovel = verificarSituacao(imovel, "https://e.casan.com.br/certidaonegativa/");
+						if (!imovel.getSituacao().equalsIgnoreCase("Possui debitos")) {
+							imovel.setSituacao(resultado);
+						}
 					}
     				logof();
     			} else {
@@ -78,12 +88,22 @@ public class LerCasanDocumentos {
 			String resultado = validarDadosLogin(imovel);
 			if (resultado.equals("OK")) {
 				if (logar(imovel, "e.casan.com.br/quitacaoanual/")) {
-					imovel = verificarSituacao(imovel, "https://e.casan.com.br/quitacaoanual/");
-					if (!imovel.getSituacao().equalsIgnoreCase("Possui debitos")) {
-						imovel.setSituacao(resultado);
+					WebElement elemento = null;
+					try {
+						elemento = driver.findElement(By.xpath("/html/body/div[3]/div[4]/div/div[1]/h4"));
+					}catch (Exception e) {
+						
+					}
+					if (elemento!=null) {
+						imovel.setSituacao("Nao é possível emitir declarações de quitação anual de débitos para essa unidade usuária. Não há informações de faturamento em 2020.");
+					} else {
+						imovel = verificarSituacao(imovel, "https://e.casan.com.br/quitacaoanual/");
+						if (!imovel.getSituacao().equalsIgnoreCase("Possui debitos")) {
+							imovel.setSituacao(resultado);
+						}
 					}
     				logof();
-    			} else {
+				} else {
 					imovel.setSituacao("ERRO AO LOGAR E-CASAN");
 				}
 			} else {
@@ -206,16 +226,21 @@ public class LerCasanDocumentos {
 		InputStream is;
 		
 		try {
-		webClient.getPage(url);
+			webClient.getPage(url);
 		
-		is = webClient.getPage(url).getWebResponse().getContentAsStream();
-         OutputStream out = new FileOutputStream(file);
-						byte[] buffer = new byte[8 * 1024];
-						int bytesRead;
-						while ((bytesRead = is.read(buffer)) != -1) {
-							out.write(buffer, 0, bytesRead);
-						}
-						out.close();
+			is = webClient.getPage(url).getWebResponse().getContentAsStream();
+			OutputStream out = new FileOutputStream(file);
+			byte[] buffer = new byte[8 * 1024];
+			int bytesRead;
+			if ((bytesRead = is.read(buffer)) != -1) {
+				while ((bytesRead = is.read(buffer)) != -1) {
+					out.write(buffer, 0, bytesRead);
+				}
+				out.close();
+			}else {
+				out.close();
+				return "Possui debitos";
+			}
 		} catch (Exception e) {
 			return "Possui debitos";
 		}
